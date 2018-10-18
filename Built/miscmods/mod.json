@@ -1,0 +1,9 @@
+{
+  "Id": "aceba1.ttmm.misc",
+  "DisplayName": "Miscellaneous Additions",
+  "Author": "Aceba1",
+  "Version": "1.0.0",
+  "Enable": true,
+  "AssemblyName": "Misc Mods.dll",
+  "EntryMethod": "Misc_Mods.Class1.Run"
+}
