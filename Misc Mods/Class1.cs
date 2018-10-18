@@ -90,6 +90,52 @@ namespace Misc_Mods
             {
                 this.TechGrounding = false;
             }
+
+            if (Input.GetKeyDown(this.ForceThrustToggle))
+            {
+                this.ForceThrust = !this.ForceThrust;
+                if (!this.ForceThrust)
+                {
+                    this.ForceThrustAmountForward = 0f;
+                    this.ForceThrustAmountUpward = 0f;
+                }
+            }
+            if (this.ForceThrust)
+            {
+                if (Input.GetKey(this.ForceThrustAddForward))
+                {
+                    this.ForceThrustAmountForward += this.ThrustChange;
+                    if (this.ForceThrustAmountForward > 1f)
+                    {
+                        this.ForceThrustAmountForward = 1f;
+                    }
+                }
+                else if (Input.GetKey(this.ForceThrustRemoveForward))
+                {
+                    this.ForceThrustAmountForward -= this.ThrustChange;
+                    if (this.ForceThrustAmountForward < -1f)
+                    {
+                        this.ForceThrustAmountForward = -1f;
+                    }
+                }
+                if (Input.GetKey(this.ForceThrustAddUpward))
+                {
+                    this.ForceThrustAmountUpward += this.ThrustChange;
+                    if (this.ForceThrustAmountUpward > 1f)
+                    {
+                        this.ForceThrustAmountUpward = 1f;
+                    }
+                }
+                else if (Input.GetKey(this.ForceThrustRemoveUpward))
+                {
+                    this.ForceThrustAmountUpward -= this.ThrustChange;
+                    if (this.ForceThrustAmountUpward < -1f)
+                    {
+                        this.ForceThrustAmountUpward = -1f;
+                    }
+                }
+            }
+
             if (Input.GetKeyDown(this.ForceAnchor))
             {
                 this.anchorcache = (Singleton.playerTank.IsAnchored ? 2 : 1);
