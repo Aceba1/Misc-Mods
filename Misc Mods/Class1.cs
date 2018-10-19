@@ -30,15 +30,25 @@ namespace Misc_Mods
         public void Start()
         {
             config = new ModConfig();
-            config.BindConfig(this, "ForceGround");
-            config.BindConfig(this, "ForceGroundToggle");
-            config.BindConfig(this, "ForceAnchor");
-            config.BindConfig(this,"ForceThrustToggle");
-            config.BindConfig(this, "ForceThrustAddForward");
-            config.BindConfig(this, "ForceThrustRemoveForward");
-            config.BindConfig(this, "ForceThrustAddUpward");
-            config.BindConfig(this, "ForceThrustRemoveUpward");
-            config.BindConfig(this, "ForceBoostFuel");
+            config.BindConfig(this, "ThrustChange");
+            config.BindConfig(this, "ForceGround", false);
+            ForceGround = (KeyCode)config.GetConfigDeep<int>("ForceGround");
+            config.BindConfig(this, "ForceGroundToggle", false);
+            ForceGroundToggle = (KeyCode)config.GetConfigDeep<int>("ForceGroundToggle");
+            config.BindConfig(this, "ForceAnchor", false);
+            ForceAnchor = (KeyCode)config.GetConfigDeep<int>("ForceAnchor");
+            config.BindConfig(this, "ForceThrustToggle", false);
+            ForceThrustToggle = (KeyCode)config.GetConfigDeep<int>("ForceThrustToggle");
+            config.BindConfig(this, "ForceThrustAddForward", false);
+            ForceThrustAddForward = (KeyCode)config.GetConfigDeep<int>("ForceThrustAddForward");
+            config.BindConfig(this, "ForceThrustRemoveForward", false);
+            ForceThrustRemoveForward = (KeyCode)config.GetConfigDeep<int>("ForceThrustRemoveForward");
+            config.BindConfig(this, "ForceThrustAddUpward", false);
+            ForceThrustAddUpward = (KeyCode)config.GetConfigDeep<int>("ForceThrustAddUpward");
+            config.BindConfig(this, "ForceThrustRemoveUpward", false);
+            ForceThrustRemoveUpward = (KeyCode)config.GetConfigDeep<int>("ForceThrustRemoveUpward");
+            config.BindConfig(this, "ForceBoostFuel", false);
+            ForceBoostFuel = (KeyCode)config.GetConfigDeep<int>("ForceBoostFuel");
         }
 
         Rect WindowRect =  new Rect(0,0,800,400);
@@ -218,29 +228,29 @@ namespace Misc_Mods
             {
                 this.InputIDToChange = 4;
             }
-            GUI.Label(new Rect(10f, 180f, 500f, 20f), "Change turbine thrust rate (" + this.ThrustChange.ToString() + ")");
+            GUI.Label(new Rect(30f, 180f, 500f, 20f), "Change turbine thrust rate (" + this.ThrustChange.ToString() + ")");
             this.ThrustChange = GUI.HorizontalSlider(new Rect(15f, 205f, this.WindowRect.width - 65f, 10f), this.ThrustChange, 1f, 0f);
-            GUI.Label(new Rect(10f, 220f, 500f, 20f), "Turbine Amount Forward (" + this.ForceThrustAmountForward.ToString() + ")");
+            GUI.Label(new Rect(30f, 220f, 500f, 20f), "Turbine Amount Forward (" + this.ForceThrustAmountForward.ToString() + ")");
             this.ForceThrustAmountForward = GUI.HorizontalSlider(new Rect(15f, 240f, this.WindowRect.width - 65f, 10f), this.ForceThrustAmountForward, 1f, -1f);
-            GUI.Label(new Rect(10f, 260f, 500f, 20f), "Add turbine thrust Forward");
-            if (GUI.Button(new Rect(15f, 280f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 5) ? "Press a key to use" : this.ForceThrustAddForward.ToString()))
+            GUI.Label(new Rect(30f, 260f, 500f, 20f), "Add turbine thrust Forward");
+            if (GUI.Button(new Rect(35f, 280f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 5) ? "Press a key to use" : this.ForceThrustAddForward.ToString()))
             {
                 this.InputIDToChange = 5;
             }
-            GUI.Label(new Rect(10f, 300f, 500f, 20f), "Remove turbine thrust Forward");
-            if (GUI.Button(new Rect(15f, 320f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 6) ? "Press a key to use" : this.ForceThrustRemoveForward.ToString()))
+            GUI.Label(new Rect(30f, 300f, 500f, 20f), "Remove turbine thrust Forward");
+            if (GUI.Button(new Rect(35f, 320f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 6) ? "Press a key to use" : this.ForceThrustRemoveForward.ToString()))
             {
                 this.InputIDToChange = 6;
             }
-            GUI.Label(new Rect(10f, 340f, 500f, 20f), "Turbine Amount Upward (" + this.ForceThrustAmountUpward.ToString() + ")");
+            GUI.Label(new Rect(30f, 340f, 500f, 20f), "Turbine Amount Upward (" + this.ForceThrustAmountUpward.ToString() + ")");
             this.ForceThrustAmountUpward = GUI.HorizontalSlider(new Rect(15f, 360f, this.WindowRect.width - 65f, 10f), this.ForceThrustAmountUpward, 1f, -1f);
-            GUI.Label(new Rect(10f, 380f, 500f, 20f), "Add turbine thrust Upward");
-            if (GUI.Button(new Rect(15f, 400f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 7) ? "Press a key to use" : this.ForceThrustAddUpward.ToString()))
+            GUI.Label(new Rect(30f, 380f, 500f, 20f), "Add turbine thrust Upward");
+            if (GUI.Button(new Rect(35f, 400f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 7) ? "Press a key to use" : this.ForceThrustAddUpward.ToString()))
             {
                 this.InputIDToChange = 7;
             }
-            GUI.Label(new Rect(10f, 420f, 500f, 20f), "Remove turbine thrust Upward");
-            if (GUI.Button(new Rect(15f, 440f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 8) ? "Press a key to use" : this.ForceThrustRemoveUpward.ToString()))
+            GUI.Label(new Rect(30f, 420f, 500f, 20f), "Remove turbine thrust Upward");
+            if (GUI.Button(new Rect(35f, 440f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 8) ? "Press a key to use" : this.ForceThrustRemoveUpward.ToString()))
             {
                 this.InputIDToChange = 8;
             }
@@ -268,19 +278,19 @@ namespace Misc_Mods
                         Vector3 vector = Quaternion.Inverse(Singleton.playerTank.control.FirstController.block.transform.rotation) * fanJet.effector.forward;
                         if (vector.z > 0.8f)
                         {
-                            fanJet.SetSpin(this.ForceThrustAmountForward);
+                            fanJet.SetSpin(-this.ForceThrustAmountForward);
                         }
                         else if (vector.z < -0.8f)
                         {
-                            fanJet.SetSpin(-this.ForceThrustAmountForward);
+                            fanJet.SetSpin(this.ForceThrustAmountForward);
                         }
                         else if (vector.y > 0.8f)
                         {
-                            fanJet.SetSpin(this.ForceThrustAmountUpward);
+                            fanJet.SetSpin(-this.ForceThrustAmountUpward);
                         }
                         else if (vector.y < -0.8f)
                         {
-                            fanJet.SetSpin(-this.ForceThrustAmountUpward);
+                            fanJet.SetSpin(this.ForceThrustAmountUpward);
                         }
                     }
                 }
