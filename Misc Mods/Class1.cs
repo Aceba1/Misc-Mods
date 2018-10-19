@@ -44,15 +44,16 @@ namespace Misc_Mods
 
             config.UseRefList = false;
 
-            ForceGround = (KeyCode)config.GetConfigDeep<int>("ForceGround");
-            ForceGroundToggle = (KeyCode)config.GetConfigDeep<int>("ForceGroundToggle");
-            ForceAnchor = (KeyCode)config.GetConfigDeep<int>("ForceAnchor");
-            ForceThrustToggle = (KeyCode)config.GetConfigDeep<int>("ForceThrustToggle");
-            ForceThrustAddForward = (KeyCode)config.GetConfigDeep<int>("ForceThrustAddForward");
-            ForceThrustRemoveForward = (KeyCode)config.GetConfigDeep<int>("ForceThrustRemoveForward");
-            ForceThrustAddUpward = (KeyCode)config.GetConfigDeep<int>("ForceThrustAddUpward");
-            ForceThrustRemoveUpward = (KeyCode)config.GetConfigDeep<int>("ForceThrustRemoveUpward");
-            ForceBoostFuel = (KeyCode)config.GetConfigDeep<int>("ForceBoostFuel");
+            Console.WriteLine(config["ForceGround"].GetType().FullName);
+            ForceGround = (KeyCode)(long)config["ForceGround"];
+            ForceGroundToggle = (KeyCode)(long)(config["ForceGroundToggle"]);
+            ForceAnchor = (KeyCode)(long)(config["ForceAnchor"]);
+            ForceThrustToggle = (KeyCode)(long)(config["ForceThrustToggle"]);
+            ForceThrustAddForward = (KeyCode)(long)(config["ForceThrustAddForward"]);
+            ForceThrustRemoveForward = (KeyCode)(long)(config["ForceThrustRemoveForward"]);
+            ForceThrustAddUpward = (KeyCode)(long)(config["ForceThrustAddUpward"]);
+            ForceThrustRemoveUpward = (KeyCode)(long)(config["ForceThrustRemoveUpward"]);
+            ForceBoostFuel = (KeyCode)(long)config["ForceBoostFuel"];
 
             config.UseRefList = true;
         }
