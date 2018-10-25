@@ -81,119 +81,126 @@ namespace Misc_Mods
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.BackQuote))
-            {
-                ShowGUI = !ShowGUI;
-                if (ShowGUI == false)
-                {
-                    config.WriteConfigJsonFile();
-                }
-            }
             try
             {
-                if (Input.GetKeyDown(this.ForceGroundToggle))
+                if (Input.GetKeyDown(KeyCode.BackQuote))
                 {
-                    this.TechGrounding = !this.TechGrounding;
-                }
-                if (this.TechGrounding)
-                {
-                    Singleton.playerTank.grounded = true;
-                }
-                if (Input.GetKey(this.ForceGround))
-                {
-                    Singleton.playerTank.grounded = true;
-                }
-                if (Input.GetKeyUp(this.ForceGround))
-                {
-                    this.TechGrounding = false;
-                }
-            }
-            catch
-            {
-                this.TechGrounding = false;
-            }
-
-            if (Input.GetKeyDown(this.ForceThrustToggle))
-            {
-                this.ForceThrust = !this.ForceThrust;
-                if (!this.ForceThrust)
-                {
-                    this.ForceThrustAmountForward = 0f;
-                    this.ForceThrustAmountUpward = 0f;
-                }
-            }
-            if (this.ForceThrust)
-            {
-                if (Input.GetKey(this.ForceThrustAddForward))
-                {
-                    this.ForceThrustAmountForward += this.ThrustChange;
-                    if (this.ForceThrustAmountForward > 1f)
+                    ShowGUI = !ShowGUI;
+                    if (ShowGUI == false)
                     {
-                        this.ForceThrustAmountForward = 1f;
+                        config.WriteConfigJsonFile();
                     }
                 }
-                else if (Input.GetKey(this.ForceThrustRemoveForward))
-                {
-                    this.ForceThrustAmountForward -= this.ThrustChange;
-                    if (this.ForceThrustAmountForward < -1f)
-                    {
-                        this.ForceThrustAmountForward = -1f;
-                    }
-                }
-                if (Input.GetKey(this.ForceThrustAddUpward))
-                {
-                    this.ForceThrustAmountUpward += this.ThrustChange;
-                    if (this.ForceThrustAmountUpward > 1f)
-                    {
-                        this.ForceThrustAmountUpward = 1f;
-                    }
-                }
-                else if (Input.GetKey(this.ForceThrustRemoveUpward))
-                {
-                    this.ForceThrustAmountUpward -= this.ThrustChange;
-                    if (this.ForceThrustAmountUpward < -1f)
-                    {
-                        this.ForceThrustAmountUpward = -1f;
-                    }
-                }
-            }
-
-            if (Input.GetKeyDown(this.ForceAnchor))
-            {
-                this.anchorcache = (Singleton.playerTank.IsAnchored ? 2 : 1);
-            }
-            if (Input.GetKey(this.ForceAnchor) && this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1))
-            {
                 try
                 {
-                    if (Singleton.playerTank.IsAnchored)
+                    if (Input.GetKeyDown(this.ForceGroundToggle))
                     {
-                        Singleton.playerTank.Anchors.UnanchorAll();
-                        this.anchorcache = ((this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1)) ? 2 : 0);
+                        this.TechGrounding = !this.TechGrounding;
                     }
-                    else
+                    if (this.TechGrounding)
                     {
-                        Vector3 position = Singleton.playerTank.transform.position;
-                        Quaternion rotation = Singleton.playerTank.transform.rotation;
-                        Vector3 velocity = Singleton.playerTank.rbody.velocity;
-                        Vector3 angularVelocity = Singleton.playerTank.rbody.angularVelocity;
-                        Singleton.playerTank.Anchors.TryAnchorAll(false);
-                        if (this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1))
-                        {
-                            Singleton.playerTank.transform.position = position;
-                            Singleton.playerTank.transform.rotation = rotation;
-                            Singleton.playerTank.rbody.velocity = velocity;
-                            Singleton.playerTank.rbody.angularVelocity = angularVelocity;
-                        }
-                        else
-                        {
-                            this.anchorcache = 0;
-                        }
+                        Singleton.playerTank.grounded = true;
+                    }
+                    if (Input.GetKey(this.ForceGround))
+                    {
+                        Singleton.playerTank.grounded = true;
+                    }
+                    if (Input.GetKeyUp(this.ForceGround))
+                    {
+                        this.TechGrounding = false;
                     }
                 }
                 catch
                 {
+                    this.TechGrounding = false;
                 }
+
+                if (Input.GetKeyDown(this.ForceThrustToggle))
+                {
+                    this.ForceThrust = !this.ForceThrust;
+                    if (!this.ForceThrust)
+                    {
+                        this.ForceThrustAmountForward = 0f;
+                        this.ForceThrustAmountUpward = 0f;
+                    }
+                }
+                if (this.ForceThrust)
+                {
+                    if (Input.GetKey(this.ForceThrustAddForward))
+                    {
+                        this.ForceThrustAmountForward += this.ThrustChange;
+                        if (this.ForceThrustAmountForward > 1f)
+                        {
+                            this.ForceThrustAmountForward = 1f;
+                        }
+                    }
+                    else if (Input.GetKey(this.ForceThrustRemoveForward))
+                    {
+                        this.ForceThrustAmountForward -= this.ThrustChange;
+                        if (this.ForceThrustAmountForward < -1f)
+                        {
+                            this.ForceThrustAmountForward = -1f;
+                        }
+                    }
+                    if (Input.GetKey(this.ForceThrustAddUpward))
+                    {
+                        this.ForceThrustAmountUpward += this.ThrustChange;
+                        if (this.ForceThrustAmountUpward > 1f)
+                        {
+                            this.ForceThrustAmountUpward = 1f;
+                        }
+                    }
+                    else if (Input.GetKey(this.ForceThrustRemoveUpward))
+                    {
+                        this.ForceThrustAmountUpward -= this.ThrustChange;
+                        if (this.ForceThrustAmountUpward < -1f)
+                        {
+                            this.ForceThrustAmountUpward = -1f;
+                        }
+                    }
+                }
+
+                if (Input.GetKeyDown(this.ForceAnchor))
+                {
+                    this.anchorcache = (Singleton.playerTank.IsAnchored ? 2 : 1);
+                }
+                if (Input.GetKey(this.ForceAnchor) && this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1))
+                {
+                    try
+                    {
+                        if (Singleton.playerTank.IsAnchored)
+                        {
+                            Singleton.playerTank.Anchors.UnanchorAll();
+                            this.anchorcache = ((this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1)) ? 2 : 0);
+                        }
+                        else
+                        {
+                            Vector3 position = Singleton.playerTank.transform.position;
+                            Quaternion rotation = Singleton.playerTank.transform.rotation;
+                            Vector3 velocity = Singleton.playerTank.rbody.velocity;
+                            Vector3 angularVelocity = Singleton.playerTank.rbody.angularVelocity;
+                            Singleton.playerTank.Anchors.TryAnchorAll(false);
+                            if (this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1))
+                            {
+                                Singleton.playerTank.transform.position = position;
+                                Singleton.playerTank.transform.rotation = rotation;
+                                Singleton.playerTank.rbody.velocity = velocity;
+                                Singleton.playerTank.rbody.angularVelocity = angularVelocity;
+                            }
+                            else
+                            {
+                                this.anchorcache = 0;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch (Exception E)
+            {
+                Console.WriteLine("EXCEPTION: " + E.Message + "\n" + E.StackTrace);
             }
         }
 
