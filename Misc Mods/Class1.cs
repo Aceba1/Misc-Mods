@@ -64,7 +64,7 @@ namespace Misc_Mods
         }
 
         Rect WindowRect =  new Rect(0,0,800,400);
-        Rect ScrollRect = new Rect(0,0,780,500);
+        Rect TurbineScrollRect = new Rect(0,0,770,500);
         Vector2 ScrollPos = Vector2.zero;
         bool ShowGUI = false;
 
@@ -78,9 +78,23 @@ namespace Misc_Mods
 
         bool TechGrounding = false;
         int anchorcache = 0;
+        TankBlock module;
 
-        public void Update()
+        private void Update()
         {
+            if (!Singleton.Manager<ManPointer>.inst.DraggingItem && Input.GetMouseButtonDown(0))
+            {
+                try
+                {
+                    module = Singleton.Manager<ManPointer>.inst.targetVisible.block;
+                }
+                catch
+                {
+                    //Console.WriteLine(e);
+                    //module = null;
+                }
+            }
+
             try
             {
                 if (Input.GetKeyDown(KeyCode.BackQuote))
@@ -89,6 +103,11 @@ namespace Misc_Mods
                     if (ShowGUI == false)
                     {
                         config.WriteConfigJsonFile();
+                        module = null;
+                    }
+                    else
+                    {
+                        log = "Right-click on a block you would like to export";
                     }
                 }
                 try
@@ -204,29 +223,38 @@ namespace Misc_Mods
             }
         }
 
+        int SelectedPage = 0;
+
         private void MiscPage(int ID)
+        {
+            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "Keybinds", "Turbines", "ModelExport" }, 3);
+            switch(SelectedPage)
+            {
+                case 0: KeybindPage(ID); break;
+                case 1: TurbinePage(ID); break;
+                case 2: ExportPage(ID); break;
+            }
+            GUI.DragWindow();
+        }
+
+        private void KeybindPage(int ID)
         {
             if (this.InputIDToChange != 0)
             {
                 Event current = Event.current;
                 if (current.isKey)
                 {
-                    switch(InputIDToChange)
+                    switch (InputIDToChange)
                     {
                         case 1: this.ForceGround = current.keyCode; break;
                         case 2: this.ForceGroundToggle = current.keyCode; break;
                         case 3: this.ForceAnchor = current.keyCode; break;
-                        case 4: this.ForceThrustToggle = current.keyCode; break;
-                        case 5: this.ForceThrustAddForward = current.keyCode; break;
-                        case 6: this.ForceThrustRemoveForward = current.keyCode; break;
-                        case 7: this.ForceThrustAddUpward = current.keyCode; break;
-                        case 8: this.ForceThrustRemoveUpward = current.keyCode; break;
-                        case 9: this.ForceBoostFuel = current.keyCode; break;
                     }
                     this.InputIDToChange = 0;
                 }
             }
-            ScrollPos = GUI.BeginScrollView(new Rect(0, 15, WindowRect.width, WindowRect.height - 15), ScrollPos, ScrollRect);
+            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
+
             GUI.Label(new Rect(0f, 0f, 500f, 20f), "Force Ground Controls");
             if (GUI.Button(new Rect(5f, 20f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 1) ? "Press a key to use" : this.ForceGround.ToString()))
             {
@@ -242,44 +270,129 @@ namespace Misc_Mods
             {
                 this.InputIDToChange = 3;
             }
-            this.ForceThrust = GUI.Toggle(new Rect(0f, 140f, 500f, 20f), this.ForceThrust, "Toggle Force turbine");
-            if (GUI.Button(new Rect(5f, 160f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 4) ? "Press a key to use" : this.ForceThrustToggle.ToString()))
+
+            GUILayout.EndScrollView();
+        }
+
+        string log = "";
+        bool KeepRot = false;
+
+        private void ExportPage(int ID)
+        {
+            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
+            try
+            {
+                if (Singleton.playerTank != null)
+                {
+                    KeepRot = GUILayout.Toggle(KeepRot, "Keep Tech Rotation in Export");
+                    if (GUILayout.Button("Export Current (Player) Tech"))
+                    {
+                        string path = "_Export/Techs";
+                        string Total = ObjExporter.DoExport(Singleton.playerTank.rbody.transform, true);
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        System.IO.File.WriteAllText(path + "/" + Singleton.playerTank.name + ".obj", Total);
+                        log = "Exported " + Singleton.playerTank.name + ".obj to " + path;
+                    }
+                }
+                GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
+                GUILayout.Label(log);
+                if (module != null)
+                {
+                    if (GUILayout.Button("Export Block Model"))
+                    {
+                        string path = "_Export/Blocks";
+                        string Total = ObjExporter.DoExport(module.transform, true);
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        System.IO.File.WriteAllText(path + "/" + module.name + ".obj", Total);
+                        log = "Exported "+module.name+".obj to " + path;
+                    }
+                    if (GUILayout.Button("Export Parts of Selected Block"))
+                    {
+                        string path = "_Export/Parts/" + module.name;
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        foreach (var mf in module.GetComponentsInChildren<MeshFilter>())
+                            System.IO.File.WriteAllText(path + "/" + mf.mesh.name + ".obj", ObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                        log = "Exported individual .obj files to " + path;
+                    }
+                }
+            }
+            catch (Exception E)
+            {
+                log = E.Message;
+                Console.WriteLine(E.Message);
+                Console.WriteLine(E.StackTrace);
+            }
+            GUILayout.EndScrollView();
+        }
+
+        private void TurbinePage(int ID)
+        {
+            if (this.InputIDToChange != 0)
+            {
+                Event current = Event.current;
+                if (current.isKey)
+                {
+                    switch(InputIDToChange)
+                    {
+                        case 4: this.ForceThrustToggle = current.keyCode; break;
+                        case 5: this.ForceThrustAddForward = current.keyCode; break;
+                        case 6: this.ForceThrustRemoveForward = current.keyCode; break;
+                        case 7: this.ForceThrustAddUpward = current.keyCode; break;
+                        case 8: this.ForceThrustRemoveUpward = current.keyCode; break;
+                        case 9: this.ForceBoostFuel = current.keyCode; break;
+                    }
+                    this.InputIDToChange = 0;
+                }
+            }
+
+            ScrollPos = GUI.BeginScrollView(new Rect(5, 40, WindowRect.width-10, WindowRect.height - 40), ScrollPos, TurbineScrollRect);
+            
+            this.ForceThrust = GUI.Toggle(new Rect(0f, 0f, 500f, 20f), this.ForceThrust, "Toggle Force turbine");
+            if (GUI.Button(new Rect(5f, 20f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 4) ? "Press a key to use" : this.ForceThrustToggle.ToString()))
             {
                 this.InputIDToChange = 4;
             }
-            GUI.Label(new Rect(30f, 180f, 500f, 20f), "Change turbine thrust rate (" + this.ThrustChange.ToString() + ")");
-            this.ThrustChange = GUI.HorizontalSlider(new Rect(15f, 205f, this.WindowRect.width - 65f, 10f), this.ThrustChange, 1f, 0f);
-            GUI.Label(new Rect(30f, 220f, 500f, 20f), "Turbine Amount Forward (" + this.ForceThrustAmountForward.ToString() + ")");
-            this.ForceThrustAmountForward = GUI.HorizontalSlider(new Rect(15f, 240f, this.WindowRect.width - 65f, 10f), this.ForceThrustAmountForward, 1f, -1f);
-            GUI.Label(new Rect(30f, 260f, 500f, 20f), "Add turbine thrust Forward");
-            if (GUI.Button(new Rect(35f, 280f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 5) ? "Press a key to use" : this.ForceThrustAddForward.ToString()))
+            GUI.Label(new Rect(30f, 40f, 500f, 20f), "Change turbine thrust rate (" + this.ThrustChange.ToString() + ")");
+            this.ThrustChange = GUI.HorizontalSlider(new Rect(15f, 65f, this.WindowRect.width - 65f, 20f), this.ThrustChange, 1f, 0f);
+            GUI.Label(new Rect(30f, 60f, 500f, 20f), "Turbine Amount Forward (" + this.ForceThrustAmountForward.ToString() + ")");
+            this.ForceThrustAmountForward = GUI.HorizontalSlider(new Rect(15f, 100f, this.WindowRect.width - 65f, 20f), this.ForceThrustAmountForward, 1f, -1f);
+            GUI.Label(new Rect(30f, 120f, 500f, 20f), "Add turbine thrust Forward");
+            if (GUI.Button(new Rect(35f, 140f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 5) ? "Press a key to use" : this.ForceThrustAddForward.ToString()))
             {
                 this.InputIDToChange = 5;
             }
-            GUI.Label(new Rect(30f, 300f, 500f, 20f), "Remove turbine thrust Forward");
-            if (GUI.Button(new Rect(35f, 320f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 6) ? "Press a key to use" : this.ForceThrustRemoveForward.ToString()))
+            GUI.Label(new Rect(30f, 160f, 500f, 20f), "Remove turbine thrust Forward");
+            if (GUI.Button(new Rect(35f, 180f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 6) ? "Press a key to use" : this.ForceThrustRemoveForward.ToString()))
             {
                 this.InputIDToChange = 6;
             }
-            GUI.Label(new Rect(30f, 340f, 500f, 20f), "Turbine Amount Upward (" + this.ForceThrustAmountUpward.ToString() + ")");
-            this.ForceThrustAmountUpward = GUI.HorizontalSlider(new Rect(15f, 360f, this.WindowRect.width - 65f, 10f), this.ForceThrustAmountUpward, 1f, -1f);
-            GUI.Label(new Rect(30f, 380f, 500f, 20f), "Add turbine thrust Upward");
-            if (GUI.Button(new Rect(35f, 400f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 7) ? "Press a key to use" : this.ForceThrustAddUpward.ToString()))
+            GUI.Label(new Rect(30f, 200f, 500f, 20f), "Turbine Amount Upward (" + this.ForceThrustAmountUpward.ToString() + ")");
+            this.ForceThrustAmountUpward = GUI.HorizontalSlider(new Rect(15f, 220f, this.WindowRect.width - 65f, 20f), this.ForceThrustAmountUpward, 1f, -1f);
+            GUI.Label(new Rect(30f, 240f, 500f, 20f), "Add turbine thrust Upward");
+            if (GUI.Button(new Rect(35f, 260f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 7) ? "Press a key to use" : this.ForceThrustAddUpward.ToString()))
             {
                 this.InputIDToChange = 7;
             }
-            GUI.Label(new Rect(30f, 420f, 500f, 20f), "Remove turbine thrust Upward");
-            if (GUI.Button(new Rect(35f, 440f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 8) ? "Press a key to use" : this.ForceThrustRemoveUpward.ToString()))
+            GUI.Label(new Rect(30f, 280f, 500f, 20f), "Remove turbine thrust Upward");
+            if (GUI.Button(new Rect(35f, 300f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 8) ? "Press a key to use" : this.ForceThrustRemoveUpward.ToString()))
             {
                 this.InputIDToChange = 8;
             }
-            GUI.Label(new Rect(0f, 460f, 500f, 20f), "Force (Fuel) Boosters");
-            if (GUI.Button(new Rect(5f, 480f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 9) ? "Press a key to use" : this.ForceBoostFuel.ToString()))
+            GUI.Label(new Rect(0f, 320f, 500f, 20f), "Force (Fuel) Boosters");
+            if (GUI.Button(new Rect(5f, 340f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 9) ? "Press a key to use" : this.ForceBoostFuel.ToString()))
             {
                 this.InputIDToChange = 9;
             }
             GUI.EndScrollView();
-            GUI.DragWindow();
         }
 
         private void FixedUpdate()
