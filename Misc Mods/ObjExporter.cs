@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.IO;
-using System.Text;
+﻿using System.Text;
+using UnityEngine;
 
-public class ObjExporterScript
+public class LocalObjExporterScript
 {
     private static int StartIndex = 0;
 
@@ -11,18 +9,17 @@ public class ObjExporterScript
     {
         StartIndex = 0;
     }
+
     public static void End()
     {
         StartIndex = 0;
     }
-
 
     public static string MeshToString(MeshFilter mf, Transform t)
     {
         Vector3 s = t.localScale;
         Vector3 p = t.localPosition;
         Quaternion r = t.localRotation;
-
 
         int numVertices = 0;
         Mesh m = mf.sharedMesh;
@@ -37,12 +34,11 @@ public class ObjExporterScript
         {
             Vector3 v = t.TransformPoint(vv);
             numVertices++;
-            sb.Append(string.Format("v {0} {1} {2}\n", v.x, v.y, -v.z));
+            sb.Append(string.Format("v {0} {1} {2}\n", v.x, v.y, v.z));
         }
         sb.Append("\n");
         foreach (Vector3 nn in m.normals)
         {
-            //Vector3 v = Quaternion.Inverse(r) * nn;
             Vector3 v = r * nn;
             sb.Append(string.Format("vn {0} {1} {2}\n", v.x, v.y, v.z));
         }
@@ -68,14 +64,14 @@ public class ObjExporterScript
     }
 }
 
-public static class ObjExporter
+public static class LocalObjExporter
 {
-    public static string DoExport(Transform Selection, bool makeSubmeshes, bool KeepRot = false)
+    public static string DoExport(Transform Selection, bool makeSubmeshes, bool KeepRot)
     {
         string meshName = Selection.gameObject.name;
         string fileName = meshName + ".obj";
 
-        ObjExporterScript.Start();
+        LocalObjExporterScript.Start();
 
         StringBuilder meshString = new StringBuilder();
 
@@ -90,8 +86,11 @@ public static class ObjExporter
         Vector3 originalPosition = t.position;
         t.position = Vector3.zero;
 
-        Quaternion originalRotation  = t.rotation;
-        if (!KeepRot) t.rotation = Quaternion.identity;
+        Quaternion originalRotation = t.rotation;
+        if (!KeepRot)
+        {
+            t.rotation = Quaternion.identity;
+        }
 
         if (!makeSubmeshes)
         {
@@ -102,13 +101,13 @@ public static class ObjExporter
         t.position = originalPosition;
         t.rotation = originalRotation;
 
-        ObjExporterScript.End();
+        LocalObjExporterScript.End();
         Debug.Log("Exported Mesh: " + fileName);
 
         return meshString.ToString();
     }
 
-    static string processTransform(Transform t, bool makeSubmeshes)
+    private static string processTransform(Transform t, bool makeSubmeshes)
     {
         StringBuilder meshString = new StringBuilder();
 
@@ -124,7 +123,7 @@ public static class ObjExporter
         MeshFilter mf = t.GetComponent<MeshFilter>();
         if (mf)
         {
-            meshString.Append(ObjExporterScript.MeshToString(mf, t));
+            meshString.Append(LocalObjExporterScript.MeshToString(mf, t));
         }
 
         for (int i = 0; i < t.childCount; i++)
@@ -143,7 +142,6 @@ public static class ObjExporter
 
         sb.Append("g ").Append(Name).Append("\n");
 
-
         foreach (Vector3 v in m.vertices)
         {
             Vector3 vector = (RotOffset * new Vector3(v.x * StretchOffset.x, v.y * StretchOffset.y, v.z * StretchOffset.z)) + PosOffset;
@@ -151,13 +149,11 @@ public static class ObjExporter
         }
         sb.Append("\n");
 
-
         foreach (Vector3 vn in m.normals)
         {
             sb.Append(string.Format("vn {0} {1} {2}\n", vn.x, vn.y, vn.z));
         }
         sb.Append("\n");
-
 
         foreach (Vector2 uv in m.uv)
         {

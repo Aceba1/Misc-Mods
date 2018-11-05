@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using ModHelper.Config;
+using System;
 using UnityEngine;
-using ModHelper.Config;
 
 namespace Misc_Mods
 {
@@ -17,15 +14,16 @@ namespace Misc_Mods
 
     public class GUIConfig : MonoBehaviour
     {
-        ModConfig config;
+        private ModConfig config;
 
-        int InputIDToChange = 0;
-        KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None,
+        private int InputIDToChange = 0;
+
+        private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None,
             ForceThrustToggle = KeyCode.None, ForceThrustAddForward = KeyCode.None, ForceThrustRemoveForward = KeyCode.None,
             ForceThrustAddUpward = KeyCode.None, ForceThrustRemoveUpward = KeyCode.None, ForceBoostFuel = KeyCode.None;
 
-        bool ForceThrust = false;
-        float ThrustChange = 0f, ForceThrustAmountForward = 0f, ForceThrustAmountUpward = 0f;
+        private bool ForceThrust = false;
+        private float ThrustChange = 0f, ForceThrustAmountForward = 0f, ForceThrustAmountUpward = 0f;
 
         public void Start()
         {
@@ -63,10 +61,10 @@ namespace Misc_Mods
             config.UseRefList = true;
         }
 
-        Rect WindowRect =  new Rect(0,0,800,400);
-        Rect TurbineScrollRect = new Rect(0,0,770,500);
-        Vector2 ScrollPos = Vector2.zero;
-        bool ShowGUI = false;
+        private Rect WindowRect = new Rect(0, 0, 800, 400);
+        private Rect TurbineScrollRect = new Rect(0, 0, 770, 500);
+        private Vector2 ScrollPos = Vector2.zero;
+        private bool ShowGUI = false;
 
         public void OnGUI()
         {
@@ -76,13 +74,13 @@ namespace Misc_Mods
             }
         }
 
-        bool TechGrounding = false;
-        int anchorcache = 0;
-        TankBlock module;
+        private bool TechGrounding = false;
+        private int anchorcache = 0;
+        private TankBlock module;
 
         private void Update()
         {
-            if (!Singleton.Manager<ManPointer>.inst.DraggingItem && Input.GetMouseButtonDown(0))
+            if (!Singleton.Manager<ManPointer>.inst.DraggingItem && Input.GetMouseButtonDown(1))
             {
                 try
                 {
@@ -104,10 +102,7 @@ namespace Misc_Mods
                     {
                         config.WriteConfigJsonFile();
                         module = null;
-                    }
-                    else
-                    {
-                        log = "Right-click on a block you would like to export";
+                        log = "Right-click on a block you would like to export, or choose to export your tech";
                     }
                 }
                 try
@@ -223,12 +218,12 @@ namespace Misc_Mods
             }
         }
 
-        int SelectedPage = 0;
+        private int SelectedPage = 0;
 
         private void MiscPage(int ID)
         {
             SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "Keybinds", "Turbines", "ModelExport" }, 3);
-            switch(SelectedPage)
+            switch (SelectedPage)
             {
                 case 0: KeybindPage(ID); break;
                 case 1: TurbinePage(ID); break;
@@ -274,8 +269,7 @@ namespace Misc_Mods
             GUILayout.EndScrollView();
         }
 
-        string log = "";
-        bool KeepRot = false;
+        public static string log = "";
 
         private void ExportPage(int ID)
         {
@@ -284,17 +278,10 @@ namespace Misc_Mods
             {
                 if (Singleton.playerTank != null)
                 {
-                    KeepRot = GUILayout.Toggle(KeepRot, "Keep Tech Rotation in Export");
-                    if (GUILayout.Button("Export Current (Player) Tech"))
+                    if (GUILayout.Button("Export Current (player) Tech with GrabIt Tools"))
                     {
-                        string path = "_Export/Techs";
-                        string Total = ObjExporter.DoExport(Singleton.playerTank.rbody.transform, true);
-                        if (!System.IO.Directory.Exists(path))
-                        {
-                            System.IO.Directory.CreateDirectory(path);
-                        }
-                        System.IO.File.WriteAllText(path + "/" + Singleton.playerTank.name + ".obj", Total);
-                        log = "Exported " + Singleton.playerTank.name + ".obj to " + path;
+                        ObjGrabItExporter.ExportWithGrabIt(Singleton.playerTank.gameObject);
+                        log = "Processing, please be patient...";
                     }
                 }
                 GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
@@ -304,13 +291,13 @@ namespace Misc_Mods
                     if (GUILayout.Button("Export Block Model"))
                     {
                         string path = "_Export/Blocks";
-                        string Total = ObjExporter.DoExport(module.transform, true);
+                        string Total = LocalObjExporter.DoExport(module.transform, true, true);
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
                         System.IO.File.WriteAllText(path + "/" + module.name + ".obj", Total);
-                        log = "Exported "+module.name+".obj to " + path;
+                        log = "Exported " + module.name + ".obj to " + path;
                     }
                     if (GUILayout.Button("Export Parts of Selected Block"))
                     {
@@ -320,7 +307,10 @@ namespace Misc_Mods
                             System.IO.Directory.CreateDirectory(path);
                         }
                         foreach (var mf in module.GetComponentsInChildren<MeshFilter>())
-                            System.IO.File.WriteAllText(path + "/" + mf.mesh.name + ".obj", ObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                        {
+                            System.IO.File.WriteAllText(path + "/" + mf.mesh.name + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                        }
+
                         log = "Exported individual .obj files to " + path;
                     }
                 }
@@ -341,7 +331,7 @@ namespace Misc_Mods
                 Event current = Event.current;
                 if (current.isKey)
                 {
-                    switch(InputIDToChange)
+                    switch (InputIDToChange)
                     {
                         case 4: this.ForceThrustToggle = current.keyCode; break;
                         case 5: this.ForceThrustAddForward = current.keyCode; break;
@@ -354,8 +344,8 @@ namespace Misc_Mods
                 }
             }
 
-            ScrollPos = GUI.BeginScrollView(new Rect(5, 40, WindowRect.width-10, WindowRect.height - 40), ScrollPos, TurbineScrollRect);
-            
+            ScrollPos = GUI.BeginScrollView(new Rect(5, 40, WindowRect.width - 10, WindowRect.height - 40), ScrollPos, TurbineScrollRect);
+
             this.ForceThrust = GUI.Toggle(new Rect(0f, 0f, 500f, 20f), this.ForceThrust, "Toggle Force turbine");
             if (GUI.Button(new Rect(5f, 20f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 4) ? "Press a key to use" : this.ForceThrustToggle.ToString()))
             {
