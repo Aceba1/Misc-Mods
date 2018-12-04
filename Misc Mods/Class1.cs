@@ -20,7 +20,7 @@ namespace Misc_Mods
 
         private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None,
             ForceThrustToggle = KeyCode.None, ForceThrustAddForward = KeyCode.None, ForceThrustRemoveForward = KeyCode.None,
-            ForceThrustAddUpward = KeyCode.None, ForceThrustRemoveUpward = KeyCode.None, ForceBoostFuel = KeyCode.None;
+            ForceThrustAddUpward = KeyCode.None, ForceThrustRemoveUpward = KeyCode.None;
 
         private bool ForceThrust = false;
         private float ThrustChange = 0f, ForceThrustAmountForward = 0f, ForceThrustAmountUpward = 0f;
@@ -38,7 +38,6 @@ namespace Misc_Mods
             config.BindConfig(this, "ForceThrustRemoveForward", false);
             config.BindConfig(this, "ForceThrustAddUpward", false);
             config.BindConfig(this, "ForceThrustRemoveUpward", false);
-            config.BindConfig(this, "ForceBoostFuel", false);
 
             config.UseRefList = false;
             try
@@ -52,7 +51,6 @@ namespace Misc_Mods
                 ForceThrustRemoveForward = (KeyCode)(long)(config["ForceThrustRemoveForward"]);
                 ForceThrustAddUpward = (KeyCode)(long)(config["ForceThrustAddUpward"]);
                 ForceThrustRemoveUpward = (KeyCode)(long)(config["ForceThrustRemoveUpward"]);
-                ForceBoostFuel = (KeyCode)(long)config["ForceBoostFuel"];
             }
             catch (Exception E)
             {
@@ -265,6 +263,10 @@ namespace Misc_Mods
             {
                 this.InputIDToChange = 3;
             }
+            if (GUI.Button(new Rect(5, 120, this.WindowRect.width * 0.4f, 20), "CRASH GAME")) 
+            {
+                throw new Exception("Uh oh! Tony found your kneecaps to be rather unsuitable");
+            }
 
             GUILayout.EndScrollView();
         }
@@ -338,7 +340,6 @@ namespace Misc_Mods
                         case 6: this.ForceThrustRemoveForward = current.keyCode; break;
                         case 7: this.ForceThrustAddUpward = current.keyCode; break;
                         case 8: this.ForceThrustRemoveUpward = current.keyCode; break;
-                        case 9: this.ForceBoostFuel = current.keyCode; break;
                     }
                     this.InputIDToChange = 0;
                 }
@@ -377,27 +378,18 @@ namespace Misc_Mods
             {
                 this.InputIDToChange = 8;
             }
-            GUI.Label(new Rect(0f, 320f, 500f, 20f), "Force (Fuel) Boosters");
-            if (GUI.Button(new Rect(5f, 340f, this.WindowRect.width * 0.5f, 20f), (this.InputIDToChange == 9) ? "Press a key to use" : this.ForceBoostFuel.ToString()))
-            {
-                this.InputIDToChange = 9;
-            }
             GUI.EndScrollView();
         }
 
         private void FixedUpdate()
         {
-            if (Input.GetKey(this.ForceBoostFuel))
-            {
-                Singleton.playerTank.control.BoostControl = true;
-            }
             if (this.ForceThrust)
             {
                 try
                 {
                     foreach (FanJet fanJet in Singleton.playerTank.GetComponentsInChildren<FanJet>())
                     {
-                        Vector3 vector = Quaternion.Inverse(Singleton.playerTank.control.FirstController.block.transform.rotation) * fanJet.effector.forward;
+                        Vector3 vector = Quaternion.Inverse(Singleton.playerTank.control.FirstController.block.transform.rotation) * Vector3.forward;
                         if (vector.z > 0.8f)
                         {
                             fanJet.SetSpin(-this.ForceThrustAmountForward);
