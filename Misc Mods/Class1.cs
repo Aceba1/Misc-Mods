@@ -18,9 +18,7 @@ namespace Misc_Mods
 
         private int InputIDToChange = 0;
 
-        private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None,
-            ForceThrustToggle = KeyCode.None, ForceThrustAddForward = KeyCode.None, ForceThrustRemoveForward = KeyCode.None,
-            ForceThrustAddUpward = KeyCode.None, ForceThrustRemoveUpward = KeyCode.None;
+        private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None;
 
         private bool ForceThrust = false;
         private float ThrustChange = 0f, ForceThrustAmountForward = 0f, ForceThrustAmountUpward = 0f;
@@ -28,16 +26,10 @@ namespace Misc_Mods
         public void Start()
         {
             config = new ModConfig();
-
-            config.BindConfig(this, "ThrustChange");
+            
             config.BindConfig(this, "ForceGround", false);
             config.BindConfig(this, "ForceGroundToggle", false);
             config.BindConfig(this, "ForceAnchor", false);
-            config.BindConfig(this, "ForceThrustToggle", false);
-            config.BindConfig(this, "ForceThrustAddForward", false);
-            config.BindConfig(this, "ForceThrustRemoveForward", false);
-            config.BindConfig(this, "ForceThrustAddUpward", false);
-            config.BindConfig(this, "ForceThrustRemoveUpward", false);
 
             config.UseRefList = false;
             try
@@ -46,11 +38,6 @@ namespace Misc_Mods
                 ForceGround = (KeyCode)(long)config["ForceGround"];
                 ForceGroundToggle = (KeyCode)(long)(config["ForceGroundToggle"]);
                 ForceAnchor = (KeyCode)(long)(config["ForceAnchor"]);
-                ForceThrustToggle = (KeyCode)(long)(config["ForceThrustToggle"]);
-                ForceThrustAddForward = (KeyCode)(long)(config["ForceThrustAddForward"]);
-                ForceThrustRemoveForward = (KeyCode)(long)(config["ForceThrustRemoveForward"]);
-                ForceThrustAddUpward = (KeyCode)(long)(config["ForceThrustAddUpward"]);
-                ForceThrustRemoveUpward = (KeyCode)(long)(config["ForceThrustRemoveUpward"]);
             }
             catch (Exception E)
             {
@@ -127,7 +114,7 @@ namespace Misc_Mods
                     this.TechGrounding = false;
                 }
 
-                if (Input.GetKeyDown(this.ForceThrustToggle))
+                /*if (Input.GetKeyDown(this.ForceThrustToggle))
                 {
                     this.ForceThrust = !this.ForceThrust;
                     if (!this.ForceThrust)
@@ -170,7 +157,7 @@ namespace Misc_Mods
                             this.ForceThrustAmountUpward = -1f;
                         }
                     }
-                }
+                }*/
 
                 if (Input.GetKeyDown(this.ForceAnchor))
                 {
@@ -182,7 +169,7 @@ namespace Misc_Mods
                     {
                         if (Singleton.playerTank.IsAnchored)
                         {
-                            Singleton.playerTank.Anchors.UnanchorAll();
+                            Singleton.playerTank.Anchors.UnanchorAll(false, false);
                             this.anchorcache = ((this.anchorcache == (Singleton.playerTank.IsAnchored ? 2 : 1)) ? 2 : 0);
                         }
                         else
@@ -328,7 +315,7 @@ namespace Misc_Mods
 
         private void TurbinePage(int ID)
         {
-            if (this.InputIDToChange != 0)
+            /*if (this.InputIDToChange != 0)
             {
                 Event current = Event.current;
                 if (current.isKey)
@@ -379,6 +366,8 @@ namespace Misc_Mods
                 this.InputIDToChange = 8;
             }
             GUI.EndScrollView();
+            */
+            GUI.Label(new Rect(30f, 40f, 600f, 20f), "There is nothing to see here, anymore...");
         }
 
         private void FixedUpdate()
