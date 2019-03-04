@@ -213,12 +213,11 @@ namespace Misc_Mods
 
         private void MiscPage(int ID)
         {
-            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "Keybinds", "Turbines", "ModelExport" }, 3);
+            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "Keybinds", "ModelExport" }, 3);
             switch (SelectedPage)
             {
                 case 0: KeybindPage(ID); break;
-                case 1: TurbinePage(ID); break;
-                case 2: ExportPage(ID); break;
+                case 1: ExportPage(ID); break;
             }
             GUI.DragWindow();
         }
@@ -319,9 +318,10 @@ namespace Misc_Mods
             GUILayout.EndScrollView();
         }
 
+        /* //There is nothing to see here anymore...
         private void TurbinePage(int ID)
         {
-            /*if (this.InputIDToChange != 0)
+            if (this.InputIDToChange != 0)
             {
                 Event current = Event.current;
                 if (current.isKey)
@@ -372,9 +372,8 @@ namespace Misc_Mods
                 this.InputIDToChange = 8;
             }
             GUI.EndScrollView();
-            */
-            GUI.Label(new Rect(30f, 40f, 600f, 20f), "There is nothing to see here, anymore...");
         }
+        /**/
 
         private void FixedUpdate()
         {
