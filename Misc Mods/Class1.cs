@@ -280,7 +280,7 @@ namespace Misc_Mods
                     if (GUILayout.Button("Export Block Model"))
                     {
                         string path = "_Export/Blocks";
-                        string Total = LocalObjExporter.DoExport(module.transform, true, true);
+                        string Total = LocalObjExporter.DoExport(module.transform, true, false);
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
