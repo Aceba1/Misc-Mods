@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace Misc_Mods
 {
+    internal static class Tony
+    {
+        public static void PokeTony() => Update();
+        static void Update() => ExamineKneecaps();
+        static void ExamineKneecaps() => throw new Exception("Uh oh! Tony found your kneecaps to be rather unsuitable");
+    }
     public class Class1
     {
         public static void Run()
@@ -252,7 +258,7 @@ namespace Misc_Mods
             }
             if (GUI.Button(new Rect(5, 120, this.WindowRect.width * 0.4f, 20), "CRASH GAME")) 
             {
-                throw new Exception("Uh oh! Tony found your kneecaps to be rather unsuitable");
+                Tony.PokeTony();
             }
 
             GUILayout.EndScrollView();
