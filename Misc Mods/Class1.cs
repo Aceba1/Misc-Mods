@@ -375,40 +375,40 @@ namespace Misc_Mods
         }
         /**/
 
-        private void FixedUpdate()
-        {
-            if (this.ForceThrust)
-            {
-                try
-                {
-                    foreach (FanJet fanJet in Singleton.playerTank.GetComponentsInChildren<FanJet>())
-                    {
-                        Vector3 vector = Quaternion.Inverse(Singleton.playerTank.control.FirstController.block.transform.rotation) * Vector3.forward;
-                        if (vector.z > 0.8f)
-                        {
-                            fanJet.SetSpin(-this.ForceThrustAmountForward);
-                        }
-                        else if (vector.z < -0.8f)
-                        {
-                            fanJet.SetSpin(this.ForceThrustAmountForward);
-                        }
-                        else if (vector.y > 0.8f)
-                        {
-                            fanJet.SetSpin(-this.ForceThrustAmountUpward);
-                        }
-                        else if (vector.y < -0.8f)
-                        {
-                            fanJet.SetSpin(this.ForceThrustAmountUpward);
-                        }
-                    }
-                }
-                catch
-                {
-                    this.ForceThrust = false;
-                    this.ForceThrustAmountForward = 0f;
-                    this.ForceThrustAmountUpward = 0f;
-                }
-            }
-        }
+        //private void FixedUpdate()
+        //{
+        //    if (this.ForceThrust)
+        //    {
+        //        try
+        //        {
+        //            foreach (FanJet fanJet in Singleton.playerTank.GetComponentsInChildren<FanJet>())
+        //            {
+        //                Vector3 vector = Quaternion.Inverse(Singleton.playerTank.control.FirstController.block.transform.rotation) * Vector3.forward;
+        //                if (vector.z > 0.8f)
+        //                {
+        //                    fanJet.SetSpin(-this.ForceThrustAmountForward);
+        //                }
+        //                else if (vector.z < -0.8f)
+        //                {
+        //                    fanJet.SetSpin(this.ForceThrustAmountForward);
+        //                }
+        //                else if (vector.y > 0.8f)
+        //                {
+        //                    fanJet.SetSpin(-this.ForceThrustAmountUpward);
+        //                }
+        //                else if (vector.y < -0.8f)
+        //                {
+        //                    fanJet.SetSpin(this.ForceThrustAmountUpward);
+        //                }
+        //            }
+        //        }
+        //        catch
+        //        {
+        //            this.ForceThrust = false;
+        //            this.ForceThrustAmountForward = 0f;
+        //            this.ForceThrustAmountUpward = 0f;
+        //        }
+        //    }
+        //}
     }
 }
