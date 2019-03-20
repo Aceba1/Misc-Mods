@@ -21,7 +21,7 @@ namespace Misc_Mods
     public class GUIConfig : MonoBehaviour
     {
         private ModConfig config;
-
+        GameObject GUIDisp;
         private int InputIDToChange = 0;
 
         private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None;
@@ -50,20 +50,15 @@ namespace Misc_Mods
                 Console.WriteLine(E.Message + "\n" + E.StackTrace);
             }
             config.UseRefList = true;
+            GUIDisp = new GameObject();
+            GUIDisp.AddComponent<GUIDisplay>().inst = this;
+            GUIDisp.SetActive(false);
         }
 
         private Rect WindowRect = new Rect(0, 0, 800, 400);
         private Rect TurbineScrollRect = new Rect(0, 0, 770, 500);
         private Vector2 ScrollPos = Vector2.zero;
         private bool ShowGUI = false;
-
-        public void OnGUI()
-        {
-            if (ShowGUI)
-            {
-                WindowRect = GUI.Window(51809, WindowRect, MiscPage, "Misc Configuration");
-            }
-        }
 
         private bool TechGrounding = false;
         private int anchorcache = 0;
@@ -89,6 +84,7 @@ namespace Misc_Mods
                 if (Input.GetKeyDown(KeyCode.BackQuote))
                 {
                     ShowGUI = !ShowGUI;
+                    GUIDisp.SetActive(ShowGUI);
                     if (ShowGUI == false)
                     {
                         config.WriteConfigJsonFile();
@@ -410,5 +406,14 @@ namespace Misc_Mods
         //        }
         //    }
         //}
+
+        internal class GUIDisplay : MonoBehaviour
+        {
+            public GUIConfig inst;
+            public void OnGUI()
+            {
+                inst.WindowRect = GUI.Window(51809, inst.WindowRect, inst.MiscPage, "Misc Configuration");
+            }
+        }
     }
 }
