@@ -10,16 +10,10 @@ namespace Misc_Mods
         private static string Name;
         private static GrabItController m_GrabItController;
         private const System.Reflection.BindingFlags bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public;
-        private static readonly bool Running = false;
 
         public static void ExportWithGrabIt(GameObject Body)
         {
             Name = Body.name;
-            if (Running)
-            {
-                GUIConfig.log = "Please be patient, there is already a tech being exported! (unless it broke)";
-                return;
-            }
 
             if (m_GrabItController == null)
             {
