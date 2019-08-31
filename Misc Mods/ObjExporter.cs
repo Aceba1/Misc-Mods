@@ -66,7 +66,7 @@ public class LocalObjExporterScript
 
 public static class LocalObjExporter
 {
-    public static string DoExport(Transform Selection, bool makeSubmeshes, bool KeepRot)
+    public static string DoExport(Transform Selection)
     {
         string meshName = Selection.gameObject.name;
         string fileName = meshName + ".obj";
@@ -87,16 +87,9 @@ public static class LocalObjExporter
         t.position = Vector3.zero;
 
         Quaternion originalRotation = t.rotation;
-        if (!KeepRot)
-        {
-            t.rotation = Quaternion.identity;
-        }
+        t.rotation = Quaternion.identity;
 
-        if (!makeSubmeshes)
-        {
-            meshString.Append("g ").Append(t.name).Append("\n");
-        }
-        meshString.Append(processTransform(t, makeSubmeshes));
+        meshString.Append(processTransform(t));
 
         t.position = originalPosition;
         t.rotation = originalRotation;
@@ -107,7 +100,7 @@ public static class LocalObjExporter
         return meshString.ToString();
     }
 
-    private static string processTransform(Transform t, bool makeSubmeshes)
+    private static string processTransform(Transform t)
     {
         StringBuilder meshString = new StringBuilder();
 
@@ -115,10 +108,9 @@ public static class LocalObjExporter
                         + "\n#-------"
                         + "\n");
 
-        if (makeSubmeshes)
-        {
-            meshString.Append("g ").Append(t.name).Append("\n");
-        }
+        
+        meshString.Append("g ").Append(t.name).Append("\n");
+        
 
         MeshFilter mf = t.GetComponent<MeshFilter>();
         if (mf)
@@ -128,7 +120,7 @@ public static class LocalObjExporter
 
         for (int i = 0; i < t.childCount; i++)
         {
-            meshString.Append(processTransform(t.GetChild(i), makeSubmeshes));
+            meshString.Append(processTransform(t.GetChild(i)));
         }
 
         return meshString.ToString();
