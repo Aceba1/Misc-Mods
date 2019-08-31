@@ -20,48 +20,21 @@ namespace Misc_Mods
 
     public class GUIConfig : MonoBehaviour
     {
-        private ModConfig config;
+        //private ModConfig config;
         GameObject GUIDisp;
-        private int InputIDToChange = 0;
-
-        private KeyCode ForceGround = KeyCode.None, ForceGroundToggle = KeyCode.None, ForceAnchor = KeyCode.None;
-
-        private bool ForceThrust = false;
-        private float ThrustChange = 0f, ForceThrustAmountForward = 0f, ForceThrustAmountUpward = 0f;
 
         public void Start()
         {
-            config = new ModConfig();
-            
-            config.BindConfig(this, "ForceGround", false);
-            config.BindConfig(this, "ForceGroundToggle", false);
-            config.BindConfig(this, "ForceAnchor", false);
+            //config = new ModConfig();
 
-            config.UseRefList = false;
-            try
-            {
-                Console.WriteLine(config["ForceGround"].GetType().FullName);
-                ForceGround = (KeyCode)(long)config["ForceGround"];
-                ForceGroundToggle = (KeyCode)(long)(config["ForceGroundToggle"]);
-                ForceAnchor = (KeyCode)(long)(config["ForceAnchor"]);
-            }
-            catch (Exception E)
-            {
-                Console.WriteLine(E.Message + "\n" + E.StackTrace);
-            }
-            config.UseRefList = true;
             GUIDisp = new GameObject();
             GUIDisp.AddComponent<GUIDisplay>().inst = this;
             GUIDisp.SetActive(false);
         }
 
         private Rect WindowRect = new Rect(0, 0, 800, 400);
-        private Rect TurbineScrollRect = new Rect(0, 0, 770, 500);
         private Vector2 ScrollPos = Vector2.zero;
         private bool ShowGUI = false;
-
-        private bool TechGrounding = false;
-        private int anchorcache = 0;
         private TankBlock module;
 
         private void Update()
@@ -87,7 +60,7 @@ namespace Misc_Mods
                     GUIDisp.SetActive(ShowGUI);
                     if (ShowGUI == false)
                     {
-                        config.WriteConfigJsonFile();
+                        //config.WriteConfigJsonFile();
                         module = null;
                         log = "Right-click on a block you would like to export, or choose to export your tech";
                     }
