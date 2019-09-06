@@ -76,10 +76,11 @@ namespace Misc_Mods
 
         private void MiscPage(int ID)
         {
-            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "ModelExport" }, 3);
+            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "ModelExport", "BlockInfoDumper" }, 3);
             switch (SelectedPage)
             {
                 case 0: ExportPage(ID); break;
+                case 1: BlockInfoDumperPage(ID); break;
             }
             GUI.DragWindow();
         }
@@ -129,6 +130,44 @@ namespace Misc_Mods
                         log = "Exported individual .obj files to " + path;
                     }
                 }
+            }
+            catch (Exception E)
+            {
+                log = E.Message;
+                Console.WriteLine(E.Message);
+                Console.WriteLine(E.StackTrace);
+            }
+            GUILayout.EndScrollView();
+        }
+
+        private void BlockInfoDumperPage(int ID)
+        {
+            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
+            try
+            {
+                if (Singleton.playerTank != null)
+                {
+                    if (GUILayout.Button("Export all block info"))
+                    {
+                        log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
+                    }
+                }
+                //GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
+                //if (module != null)
+                //{
+                //    if (GUILayout.Button("Export Block JSON"))
+                //    {
+                //        string path = "_Export/BlockJson";
+                //        string Total = LocalObjExporter.DoExport(module.transform);
+                //        if (!System.IO.Directory.Exists(path))
+                //        {
+                //            System.IO.Directory.CreateDirectory(path);
+                //        }
+                //        System.IO.File.WriteAllText(path + "/" + module.name + ".obj", Total);
+                //        log = "Exported " + module.name + ".obj to " + path;
+                //    }
+                //}
+                GUILayout.Label(log);
             }
             catch (Exception E)
             {
