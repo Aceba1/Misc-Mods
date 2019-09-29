@@ -47,6 +47,7 @@
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\TerraTech\TerraTechWin64_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -80,4 +81,18 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>del *.pdb
+@setlocal enableextensions enabledelayedexpansion
+
+set modpath="C:\Program Files (x86)\Steam\steamapps\common\TerraTech\QMods\$(SolutionName)"
+
+if not exist !modpath! (
+echo Creating directory at game's QMods folder
+mkdir !modpath!
+)
+echo Copying to game (!modpath!)
+set e=$(TargetDir)&gt;nul
+xcopy /S /Y /R /I "!e:~0,-1!" !modpath!</PostBuildEvent>
+  </PropertyGroup>
 </Project>

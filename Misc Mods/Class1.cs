@@ -152,22 +152,23 @@ namespace Misc_Mods
                         log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
                     }
                 }
-                //GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
-                //if (module != null)
-                //{
-                //    if (GUILayout.Button("Export Block JSON"))
-                //    {
-                //        string path = "_Export/BlockJson";
-                //        string Total = LocalObjExporter.DoExport(module.transform);
-                //        if (!System.IO.Directory.Exists(path))
-                //        {
-                //            System.IO.Directory.CreateDirectory(path);
-                //        }
-                //        System.IO.File.WriteAllText(path + "/" + module.name + ".obj", Total);
-                //        log = "Exported " + module.name + ".obj to " + path;
-                //    }
-                //}
+                GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
                 GUILayout.Label(log);
+                if (module != null)
+                {
+                    if (GUILayout.Button("Export Block JSON"))
+                    {
+                        string path = "_Export/BlockJson";
+                        BlockInfoDumper.DeepDumpClassCache.Clear();
+                        var Total = BlockInfoDumper.DeepDumpTransform(module.transform, 4).ToString();
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        System.IO.File.WriteAllText(path + "/" + module.name + ".json", Total);
+                        log = "Exported " + module.name + ".json to " + path;
+                    }
+                }
             }
             catch (Exception E)
             {
