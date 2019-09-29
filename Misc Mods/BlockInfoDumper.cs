@@ -409,6 +409,13 @@ namespace Misc_Mods
             var d = DeepDumpTransform(transform, Depth);
             foreach (var l in hl)
             {
+                string name = l.name, _name = name;
+                int _c = 0;
+                while (l.obj.TryGetValue(_name, out _))
+                {
+                    _name = name + " (" + (++_c).ToString() + ")";
+                }
+                DeepDumpClassCache.Add(l.component, l.path + _name);
                 l.obj.Add(l.name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
             }
             return d;
@@ -425,19 +432,18 @@ namespace Misc_Mods
             foreach (var component in components)
             {
                 Type type = component.GetType();
-                string name = type.Name, _name = name;
+                hl.Add(new h { name = type.Name, type = type, component = component, depth = Depth - 1, path = path, obj = OBJ });
+            }
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                var Child = transform.GetChild(i);
+                string name = Child.name, _name = name;
                 int _c = 0;
                 while (OBJ.TryGetValue(_name, out _))
                 {
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
-                DeepDumpClassCache.Add(component, path + _name);
-                hl.Add(new h { name = _name, type = type, component = component, depth = Depth - 1, path = path, obj = OBJ });
-            }
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                var Child = transform.GetChild(i);
-                OBJ.Add("GameObject|" + Child.name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
+                OBJ.Add("GameObject|" + _name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
             }
             return OBJ;
         }
