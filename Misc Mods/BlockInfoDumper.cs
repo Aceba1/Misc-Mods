@@ -416,7 +416,7 @@ namespace Misc_Mods
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
                 DeepDumpClassCache.Add(l.component, l.path + _name);
-                l.obj.Add(l.name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
+                l.obj.Add(_name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
             }
             return d;
         }
@@ -437,13 +437,13 @@ namespace Misc_Mods
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var Child = transform.GetChild(i);
-                string name = Child.name, _name = name;
+                string name = "GameObject|" + Child.name, _name = name;
                 int _c = 0;
                 while (OBJ.TryGetValue(_name, out _))
                 {
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
-                OBJ.Add("GameObject|" + _name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
+                OBJ.Add(_name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
             }
             return OBJ;
         }
