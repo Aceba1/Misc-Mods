@@ -400,9 +400,21 @@ namespace Misc_Mods
 
         public static System.Collections.Generic.Dictionary<object, string> DeepDumpClassCache = new System.Collections.Generic.Dictionary<object, string>();
 
-        private struct h { public string name;  public Type type; public Component component; }
+        private struct h { public string name;  public Type type; public Component component; public int depth; public string path; public JObject obj; }
+        private static System.Collections.Generic.List<h> hl = new System.Collections.Generic.List<h>();
 
-        public static JToken DeepDumpTransform(Transform transform, int Depth, string path = "#")
+        public static JToken DeepDumpAll(Transform transform, int Depth)
+        {
+            hl.Clear();
+            var d = DeepDumpTransform(transform, Depth);
+            foreach (var l in hl)
+            {
+                l.obj.Add(l.name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
+            }
+            return d;
+        }
+
+        static JToken DeepDumpTransform(Transform transform, int Depth, string path = "#")
         {
             if (Depth < 0)
             {
@@ -410,7 +422,6 @@ namespace Misc_Mods
             }
             JObject OBJ = new JObject();
             var components = transform.gameObject.GetComponents<Component>();
-            var list = new System.Collections.Generic.List<h>();
             foreach (var component in components)
             {
                 Type type = component.GetType();
@@ -421,23 +432,19 @@ namespace Misc_Mods
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
                 DeepDumpClassCache.Add(component, path + _name);
-                list.Add(new h { name = _name, type = type, component = component });
+                hl.Add(new h { name = _name, type = type, component = component, depth = Depth - 1, path = path, obj = OBJ });
             }
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var Child = transform.GetChild(i);
                 OBJ.Add("GameObject|" + Child.name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
             }
-            foreach (var h in list)
-            {
-                OBJ.Add(h.name, DeepDumpObj(h.type, h.component, Depth - 1, path));
-            }
             return OBJ;
         }
 
         static Type ttrans = typeof(Transform);
 
-        public static JToken DeepDumpObj(Type type, object component, int Depth, string path)
+        static JToken DeepDumpObj(Type type, object component, int Depth, string path)
         {
             if (Depth < 0)
             {

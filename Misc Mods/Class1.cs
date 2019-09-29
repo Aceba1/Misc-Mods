@@ -160,7 +160,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
-                        var Total = BlockInfoDumper.DeepDumpTransform(module.transform, 4).ToString();
+                        var Total = BlockInfoDumper.DeepDumpAll(module.transform, 4).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
