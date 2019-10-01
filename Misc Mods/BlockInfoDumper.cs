@@ -415,7 +415,7 @@ namespace Misc_Mods
                 {
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
-                DeepDumpClassCache.Add(l.component, l.path + _name);
+                //DeepDumpClassCache.Add(l.component, l.path + _name);
                 l.obj.Add(_name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
             }
             return d;
@@ -454,8 +454,8 @@ namespace Misc_Mods
         {
             if (Depth < 0)
             {
-                Console.WriteLine("Too deep!");
-                return "Too deep!";
+                //Console.WriteLine("Too deep!");
+                return "Depth exceeded!";
             }
             var OBJ = new JObject();
             Console.WriteLine("-".PadRight(Depth * 2) + type.Name);
@@ -501,15 +501,30 @@ namespace Misc_Mods
                     {
                         OBJ.Add(cName, new JArray());
                     }
+                    else if (v_array.Length > 50)
+                    {
+                        OBJ.Add(cName, "Array[" + v_array.Length.ToString() + "]");
+                    }
                     else
                     {
                         var ARR = new JArray();
                         Type itemType = v_array.GetValue(0).GetType();
-                        if (itemType.IsClass)
+                        try
+                        {
+                            foreach (var item in v_array)
+                            {
+                                try
+                                {
+                                    ARR.Add(new JValue(item));
+                                }
+                                catch { }
+                            }
+                        }
+                        catch
                         {
                             if (itemType == ttrans && type == ttrans)
                             {
-                                ARR.Add("Transform (depth-cutoff)");
+                                ARR.Add("Transform Array[" + v_array.Length.ToString() + "]");
                             }
                             else
                             {
@@ -535,17 +550,6 @@ namespace Misc_Mods
                                 catch { }
                             }
                         }
-                        else
-                        {
-                            foreach (var item in v_array)
-                            {
-                                try
-                                {
-                                    ARR.Add(new JValue(item));
-                                }
-                                catch { }
-                            }
-                        }
                         OBJ.Add(cName, ARR);
                     }
                 }
@@ -555,7 +559,7 @@ namespace Misc_Mods
                     {
                         if (cType == ttrans && type == ttrans)
                         {
-                            OBJ.Add(cName, "Transform (depth-cutoff)");
+                            OBJ.Add(cName, "Transform " + (cValue as Transform).name);
                         }
                         else
                         {

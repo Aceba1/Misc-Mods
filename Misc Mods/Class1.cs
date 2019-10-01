@@ -145,12 +145,9 @@ namespace Misc_Mods
             ScrollPos = GUILayout.BeginScrollView(ScrollPos);
             try
             {
-                if (Singleton.playerTank != null)
+                if (GUILayout.Button("Export all block info"))
                 {
-                    if (GUILayout.Button("Export all block info"))
-                    {
-                        log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
-                    }
+                    log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
                 }
                 GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
                 GUILayout.Label(log);
@@ -160,7 +157,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
-                        var Total = BlockInfoDumper.DeepDumpAll(module.transform, 4).ToString();
+                        var Total = BlockInfoDumper.DeepDumpAll(module.transform, 6).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
