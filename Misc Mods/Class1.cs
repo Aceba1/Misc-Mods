@@ -168,7 +168,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
-                        var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 6).ToString();
+                        var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 12).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
