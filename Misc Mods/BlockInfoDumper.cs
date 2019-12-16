@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using UnityEngine;
 
 namespace Misc_Mods
@@ -448,7 +449,8 @@ namespace Misc_Mods
             return OBJ;
         }
 
-        static Type ttrans = typeof(Transform);
+        static Type ttrans = typeof(Transform), tmesh = typeof(Mesh);
+        static PropertyInfo transgo = ttrans.GetProperty("gameObject", binding);
 
         static JToken DeepDumpObj(Type type, object component, int Depth, string path)
         {
@@ -456,9 +458,21 @@ namespace Misc_Mods
             {
                 //Console.WriteLine("Too deep!");
                 return "Depth exceeded!";
+
             }
             var OBJ = new JObject();
             Console.WriteLine("-".PadRight(Depth * 2) + type.Name);
+            if (type == ttrans)
+            {
+                try
+                {
+                    DeepDumpObjInternal(type, component, Depth, path, OBJ, "gameObject", transgo.GetValue(component), transgo.PropertyType);
+                }
+                catch
+                {
+
+                }
+            }
             var fields = type.GetFields(binding | BindingFlags.DeclaredOnly);
             foreach (var field in fields)
             {
@@ -471,16 +485,19 @@ namespace Misc_Mods
                     Console.WriteLine($"{type.Name} {Depth}: {E.Message}, {E.StackTrace}");
                 }
             }
-            var props = type.GetProperties(binding | BindingFlags.DeclaredOnly);
+            var props = type.GetProperties(binding);// | BindingFlags.DeclaredOnly);
             foreach (var prop in props)
             {
-                try
+                if (prop.CanWrite)
                 {
-                    DeepDumpObjInternal(type, component, Depth, path, OBJ, prop.Name, prop.GetValue(component, null), prop.PropertyType);
-                }
-                catch (Exception E)
-                {
-                    Console.WriteLine($"{type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                    try
+                    {
+                        DeepDumpObjInternal(type, component, Depth, path, OBJ, prop.Name, prop.GetValue(component, null), prop.PropertyType);
+                    }
+                    catch (Exception E)
+                    {
+                        Console.WriteLine($"{type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                    }
                 }
             }
             return OBJ;
@@ -490,92 +507,52 @@ namespace Misc_Mods
         {
             try
             {
-                OBJ.Add(cName, new JValue(cValue));
+                if (cType == tmesh)
+                {
+                    OBJ.Add(cName, new JObject());
+                }
+                else if (cType == ttrans && type == ttrans)
+                {
+                    OBJ.Add(cName, "Transform " + (cValue as Transform).name);
+                }
+                else try
+                    {
+                        if (cValue is System.Collections.IList iList)
+                        {
+                            Type itemType;
+                            if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
+                            else itemType = type.GetElementType();
+                            for (int i = 0; i < iList.Count; i++)
+                            {
+                                OBJ.Add(cName, DeepDumpObj(itemType, iList[i], Depth - 1, path + "/" + cName + "[" + i + "]"));
+                            }
+                        }
+                        else
+                            OBJ.Add(cName, JToken.FromObject(cValue));
+                    }
+                    catch
+                    {
+                        OBJ.Add(cName, JToken.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(cValue)));
+                    }
             }
             catch
             {
-                if (cType.IsArray)
+                try
                 {
-                    Array v_array = (Array)cValue;
-                    if (v_array.Length == 0)
+                    if (DeepDumpClassCache.TryGetValue(cValue, out string _path))
                     {
-                        OBJ.Add(cName, new JArray());
-                    }
-                    else if (v_array.Length > 50)
-                    {
-                        OBJ.Add(cName, "Array[" + v_array.Length.ToString() + "]");
+                        OBJ.Add(_path);
                     }
                     else
                     {
-                        var ARR = new JArray();
-                        Type itemType = v_array.GetValue(0).GetType();
-                        try
-                        {
-                            foreach (var item in v_array)
-                            {
-                                try
-                                {
-                                    ARR.Add(new JValue(item));
-                                }
-                                catch { }
-                            }
-                        }
-                        catch
-                        {
-                            if (itemType == ttrans && type == ttrans)
-                            {
-                                ARR.Add("Transform Array[" + v_array.Length.ToString() + "]");
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    int i = -1;
-                                    foreach (var item in v_array)
-                                    {
-                                        i++;
-                                        if (DeepDumpClassCache.TryGetValue(item, out string _path))
-                                        {
-                                            ARR.Add(_path);
-                                        }
-                                        else
-                                        {
-                                            string pathAdd = path + "/" + cName + "[" + i.ToString() + "]";
-                                            DeepDumpClassCache.Add(item, pathAdd);
-                                            ARR.Add(DeepDumpObj(itemType, item, Depth - 1, pathAdd));
-
-                                        }
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                        OBJ.Add(cName, ARR);
+                        string pathAdd = path + "/" + cName;
+                        DeepDumpClassCache.Add(cValue, pathAdd);
+                        OBJ.Add(cName, DeepDumpObj(cType, cValue, Depth - 1, pathAdd));
                     }
                 }
-                else
+                catch
                 {
-                    try
-                    {
-                        if (cType == ttrans && type == ttrans)
-                        {
-                            OBJ.Add(cName, "Transform " + (cValue as Transform).name);
-                        }
-                        else
-                        {
-                            if (DeepDumpClassCache.TryGetValue(cValue, out string _path))
-                            {
-                                OBJ.Add(_path);
-                            }
-                            else
-                            {
-                                string pathAdd = path + "/" + cName;
-                                DeepDumpClassCache.Add(cValue, pathAdd);
-                                OBJ.Add(cName, DeepDumpObj(cType, cValue, Depth - 1, pathAdd));
-                            }
-                        }
-                    }
-                    catch { }
+                    OBJ.Add(cName, "Error");
                 }
             }
         }

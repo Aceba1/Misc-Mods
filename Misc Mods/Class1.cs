@@ -39,6 +39,7 @@ namespace Misc_Mods
 
         private void Update()
         {
+            SelectedPage = m_SelectedPage;
             if (!Singleton.Manager<ManPointer>.inst.DraggingItem && Input.GetMouseButtonDown(1))
             {
                 try
@@ -72,16 +73,21 @@ namespace Misc_Mods
             }
         }
 
-        private int SelectedPage = 0;
+        private int SelectedPage, m_SelectedPage;
 
         private void MiscPage(int ID)
         {
-            SelectedPage = GUILayout.SelectionGrid(SelectedPage, new string[] { "ModelExport", "BlockInfoDumper" }, 3);
-            switch (SelectedPage)
-            {
-                case 0: ExportPage(ID); break;
-                case 1: BlockInfoDumperPage(ID); break;
-            }
+            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
+              GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
+              GUILayout.Label(log);
+              GUILayout.BeginVertical("Model Exporter", GUI.skin.window);
+                ExportPage(ID);
+              GUILayout.EndVertical();
+              GUILayout.Space(16);
+              GUILayout.BeginVertical("Block JSON Dumper", GUI.skin.window);
+                BlockInfoDumperPage(ID);
+              GUILayout.EndVertical();
+            GUILayout.EndScrollView();
             GUI.DragWindow();
         }
 
@@ -89,7 +95,6 @@ namespace Misc_Mods
 
         private void ExportPage(int ID)
         {
-            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
             try
             {
                 if (Singleton.playerTank != null)
@@ -100,8 +105,6 @@ namespace Misc_Mods
                         log = "Processing, please be patient...";
                     }
                 }
-                GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
-                GUILayout.Label(log);
                 if (module != null)
                 {
                     if (GUILayout.Button("Export Block Model"))
@@ -137,20 +140,16 @@ namespace Misc_Mods
                 Console.WriteLine(E.Message);
                 Console.WriteLine(E.StackTrace);
             }
-            GUILayout.EndScrollView();
         }
 
         private void BlockInfoDumperPage(int ID)
         {
-            ScrollPos = GUILayout.BeginScrollView(ScrollPos);
             try
             {
                 if (GUILayout.Button("Export all block info"))
                 {
                     log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
                 }
-                GUILayout.Label("Selected Block: " + (module ? module.name : "None"));
-                GUILayout.Label(log);
                 if (module != null)
                 {
                     if (GUILayout.Button("Export Block JSON"))
@@ -165,6 +164,18 @@ namespace Misc_Mods
                         System.IO.File.WriteAllText(path + "/" + module.name + ".json", Total);
                         log = "Exported " + module.name + ".json to " + path;
                     }
+                    if (GUILayout.Button("Export FireData Projectile JSON"))
+                    {
+                        string path = "_Export/BlockJson";
+                        BlockInfoDumper.DeepDumpClassCache.Clear();
+                        var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 6).ToString();
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        System.IO.File.WriteAllText(path + "/" + module.name + "_BulletPrefab.json", Total);
+                        log = "Exported " + module.name + "_BulletPrefab.json to " + path;
+                    }
                 }
             }
             catch (Exception E)
@@ -173,7 +184,6 @@ namespace Misc_Mods
                 Console.WriteLine(E.Message);
                 Console.WriteLine(E.StackTrace);
             }
-            GUILayout.EndScrollView();
         }
 
         internal class GUIDisplay : MonoBehaviour
