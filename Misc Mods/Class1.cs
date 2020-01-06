@@ -16,21 +16,40 @@ namespace Misc_Mods
     }
     public class Class1
     {
+        public static ModConfig config;
+
+        public static float FanJetMultiplier = 1f,
+            FanJetVelocityRestraint = 0f,
+            BoosterJetMultiplier = 1f,
+            ModuleWingMultiplier = 1f;
+        public static float WorldDrag = 1f,
+            TechDrag = 1f;
+
         public static void Run()
         {
+            config = new ModConfig();
+            config.BindConfig<Class1>(null, "FanJetMultiplier");
+            config.BindConfig<Class1>(null, "FanJetVelocityRestraint");
+            config.BindConfig<Class1>(null, "BoosterJetMultiplier");
+            config.BindConfig<Class1>(null, "ModuleWingMultiplier");
+            config.BindConfig<Class1>(null, "WorldDrag");
+            config.BindConfig<Class1>(null, "TechDrag");
+            config.UpdateConfig += GUIConfig.ResetMultipliers;
+
+            HarmonyInstance mod = HarmonyInstance.Create("aceba1.ttmm.misc");
+            mod.PatchAll(Assembly.GetExecutingAssembly());
             new GameObject().AddComponent<GUIConfig>();
+            GUIConfig.ResetMultipliers();
         }
     }
 
     public class GUIConfig : MonoBehaviour
     {
-        //private ModConfig config;
         GameObject GUIDisp;
+
 
         public void Start()
         {
-            //config = new ModConfig();
-
             GUIDisp = new GameObject();
             GUIDisp.AddComponent<GUIDisplay>().inst = this;
             GUIDisp.SetActive(false);
@@ -43,7 +62,6 @@ namespace Misc_Mods
 
         private void Update()
         {
-            SelectedPage = m_SelectedPage;
             if (!Singleton.Manager<ManPointer>.inst.DraggingItem && Input.GetMouseButtonDown(1))
             {
                 try
@@ -65,9 +83,9 @@ namespace Misc_Mods
                     GUIDisp.SetActive(ShowGUI);
                     if (ShowGUI == false)
                     {
-                        //config.WriteConfigJsonFile();
+                        Class1.config.WriteConfigJsonFile();
                         module = null;
-                        log = "Right-click on a block you would like to export, or choose to export your tech";
+                        log = "Right-click on a block to select it here";
                     }
                 }
             }
@@ -76,8 +94,6 @@ namespace Misc_Mods
                 Console.WriteLine("EXCEPTION: " + E.Message + "\n" + E.StackTrace);
             }
         }
-
-        private int SelectedPage, m_SelectedPage;
 
         private void MiscPage(int ID)
         {
