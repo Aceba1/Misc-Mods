@@ -12,7 +12,7 @@ namespace Misc_Mods
     {
         public static void PokeTony() => Update();
         static void Update() => ExamineKneecaps();
-        static void ExamineKneecaps() => throw new Exception("Uh oh! Tony found your kneecaps to be rather unsuitable");
+        static void ExamineKneecaps() => throw new Exception("Kneecaps not found! Please reinstall kneecaps to proceed, else Tony shalln't  W-A-L-K");
     }
     public class Class1
     {
