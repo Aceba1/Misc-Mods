@@ -245,6 +245,10 @@ namespace Misc_Mods
               GUILayout.BeginVertical("Block JSON Dumper", GUI.skin.window);
                 BlockInfoDumperPage(ID);
               GUILayout.EndVertical();
+              GUILayout.Space(16);
+              GUILayout.BeginVertical("World Multiplier", GUI.skin.window);
+                WorldMultiplierPage(ID);
+              GUILayout.EndVertical();
             GUILayout.EndScrollView();
             GUI.DragWindow();
         }
@@ -400,6 +404,102 @@ namespace Misc_Mods
                 Console.WriteLine(E.Message);
                 Console.WriteLine(E.StackTrace);
             }
+        }
+
+        string fjm, fjr, mwm, bjm, wd, td;
+        private void WorldMultiplierPage(int ID)
+        {
+            try
+            {
+                TextSliderPair("Turbine Strength: ", ref fjm, ref Class1.FanJetMultiplier, 0f, 2f, false);
+                TextSliderPair("Turbine Velocity Limiter: ", ref fjr, ref Class1.FanJetVelocityRestraint, 0f, 25f, false, 1f);
+                TextSliderPair("Wing Strength: ", ref mwm, ref Class1.ModuleWingMultiplier, 0f, 2f, false);
+                TextSliderPair("Booster Strength: ", ref bjm, ref Class1.BoosterJetMultiplier, 0f, 2f, false);
+                if (TextSliderPair("Tech Drag: ", ref td, ref Class1.TechDrag, 0, 5f, false, 0.01f))
+                {
+                    ResetTechDrag();
+                }
+                if (TextSliderPair("World Drag: ", ref wd, ref Class1.WorldDrag, 0f, 10f, false))
+                {
+                    ResetWorldDrag();
+                }
+            }
+            catch (Exception E)
+            {
+                log = E.Message;
+                Console.WriteLine(E.Message);
+                Console.WriteLine(E.StackTrace);
+            }
+        }
+        public static void ResetMultipliers()
+        {
+            ResetTechDrag();
+            ResetWorldDrag();
+        }
+        public static void ResetTechDrag()
+        {
+            foreach (var tank in FindObjectsOfType<Tank>())
+            {
+                tank.airSpeedDragFactor = Class1.TechDrag;
+                tank.airSpeedAngularDragFactor = Class1.TechDrag;
+            }
+        }
+        public static void ResetWorldDrag()
+        {
+            Globals.inst.airSpeedDrag = Class1.WorldDrag;
+            foreach (var rbody in FindObjectsOfType<Rigidbody>())
+            {
+                rbody.drag = Globals.inst.airSpeedDrag;
+            }
+        }
+
+        public static bool TextSliderPair(string label, ref string input, ref float value, float min, float max, bool clampText, float round = 0.05f) // Copied from Block Injector Overhaul branch
+        {
+            GUILayout.Label(label + value.ToString());
+
+            GUILayout.BeginHorizontal();
+            GUI.changed = false;
+            bool Changed = false;
+            if (input == null) input = value.ToString();
+            input = GUILayout.TextField(input, GUILayout.MaxWidth(80));
+            if (GUI.changed && float.TryParse(input, out float sValue))
+            {
+                if (clampText)
+                    sValue = Mathf.Clamp(sValue, min, max);
+                Changed = sValue != value;
+                value = sValue;
+            }
+
+            GUI.changed = false;
+            var tValue = Mathf.Round(GUILayout.HorizontalSlider(value, min, max) / round) * round;
+            if (GUI.changed)
+            {
+                input = tValue.ToString();
+                Changed |= tValue != value;
+                value = tValue;
+            }
+            GUILayout.EndHorizontal();
+            return Changed;
+        }
+
+        static Texture2D duplicateTexture(Texture source) // https://stackoverflow.com/a/44734346
+        {
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                        source.width,
+                        source.height,
+                        0,
+                        RenderTextureFormat.Default,
+                        RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(source, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+            Texture2D readableText = new Texture2D(source.width, source.height);
+            readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            readableText.Apply();
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
+            return readableText;
         }
 
         internal class GUIDisplay : MonoBehaviour
