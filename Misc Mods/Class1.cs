@@ -50,7 +50,7 @@ namespace Misc_Mods
                 public static void Postfix(Tank __instance)
                 {
                     __instance.airSpeedDragFactor = Class1.TechDrag * 0.001f;
-                    __instance.airSpeedAngularDragFactor = Class1.TechDrag;
+                    __instance.airSpeedAngularDragFactor = Class1.TechDrag * 0.001f;
                 }
             }
 
@@ -440,8 +440,8 @@ namespace Misc_Mods
         {
             foreach (var tank in FindObjectsOfType<Tank>())
             {
-                tank.airSpeedDragFactor = Class1.TechDrag;
-                tank.airSpeedAngularDragFactor = Class1.TechDrag;
+                tank.airSpeedDragFactor = Class1.TechDrag * 0.001f;
+                tank.airSpeedAngularDragFactor = Class1.TechDrag * 0.001f;
             }
         }
         public static void ResetWorldDrag()
