@@ -255,6 +255,17 @@ namespace Misc_Mods
 
         public static string log = "";
 
+        const string regex = @"^[\w\-. ]+$";
+        static string SafeName(string source)
+        {
+            string result = source;
+            foreach(char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                result = result.Replace(c, '_');
+            }
+            return result;
+        }
+
         private void ExportPage(int ID)
         {
             try
@@ -277,7 +288,7 @@ namespace Misc_Mods
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
-                        System.IO.File.WriteAllText(path + "/" + module.name + ".obj", Total);
+                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + ".obj", Total);
                         log = "Exported " + module.name + ".obj to " + path;
                     }
                     if (GUILayout.Button("Export Parts of Selected Block"))
@@ -289,7 +300,7 @@ namespace Misc_Mods
                         }
                         foreach (var mf in module.GetComponentsInChildren<MeshFilter>())
                         {
-                            System.IO.File.WriteAllText(path + "/" + mf.mesh.name + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                            System.IO.File.WriteAllText(path + "/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
                         }
 
                         log = "Exported individual .obj files to " + path;
@@ -309,9 +320,9 @@ namespace Misc_Mods
                         var type = ManSpawn.inst.GetCorporation(module.BlockType);
                         var maintex = ManCustomSkins.inst.GetSkinTexture(type, 0);
 
-                        System.IO.File.WriteAllBytes(path + "/" + type.ToString() + "_1.png", duplicateTexture(maintex.m_Albedo).EncodeToPNG());
-                        System.IO.File.WriteAllBytes(path + "/" + type.ToString() + "_2.png", duplicateTexture(maintex.m_Metal).EncodeToPNG());
-                        System.IO.File.WriteAllBytes(path + "/" + type.ToString() + "_3.png", duplicateTexture(maintex.m_Emissive).EncodeToPNG());
+                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_1.png", duplicateTexture(maintex.m_Albedo).EncodeToPNG());
+                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_2.png", duplicateTexture(maintex.m_Metal).EncodeToPNG());
+                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_3.png", duplicateTexture(maintex.m_Emissive).EncodeToPNG());
 
                         Dictionary<Texture, string> buffer = new Dictionary<Texture, string>();
                         List<Vector2> invalid = new List<Vector2>();
@@ -340,7 +351,7 @@ namespace Misc_Mods
                         foreach (var tex in buffer)
                         {
                             if (invalid.Contains(new Vector2(tex.Key.width, tex.Key.height))) continue;
-                            System.IO.File.WriteAllBytes(path + "/" + tex.Value, duplicateTexture(tex.Key).EncodeToPNG());
+                            System.IO.File.WriteAllBytes(path + "/" + SafeName(tex.Value), duplicateTexture(tex.Key).EncodeToPNG());
                         }
 
                         log = "Exported all .png files to " + path;
@@ -381,7 +392,7 @@ namespace Misc_Mods
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
-                        System.IO.File.WriteAllText(path + "/" + module.name + ".json", Total);
+                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + ".json", Total);
                         log = "Exported " + module.name + ".json to " + path;
                     }
                     if (GUILayout.Button("Export FireData Projectile JSON"))
@@ -393,7 +404,7 @@ namespace Misc_Mods
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
-                        System.IO.File.WriteAllText(path + "/" + module.name + "_BulletPrefab.json", Total);
+                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + "_BulletPrefab.json", Total);
                         log = "Exported " + module.name + "_BulletPrefab.json to " + path;
                     }
                 }
