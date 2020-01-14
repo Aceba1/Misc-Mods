@@ -49,8 +49,8 @@ namespace Misc_Mods
             {
                 public static void Postfix(Tank __instance)
                 {
-                    __instance.airSpeedDragFactor = Class1.TechDrag * 0.001f;
-                    __instance.airSpeedAngularDragFactor = Class1.TechDrag * 0.001f;
+                    __instance.airSpeedDragFactor = Class1.TechDrag * 0.0005f;
+                    __instance.airSpeedAngularDragFactor = Class1.TechDrag * 0.0005f;
                 }
             }
 
@@ -426,11 +426,11 @@ namespace Misc_Mods
                 TextSliderPair("Turbine Velocity Limiter: ", ref fjr, ref Class1.FanJetVelocityRestraint, 0f, 25f, false, 1f);
                 TextSliderPair("Wing Strength: ", ref mwm, ref Class1.ModuleWingMultiplier, 0f, 2f, false);
                 TextSliderPair("Booster Strength: ", ref bjm, ref Class1.BoosterJetMultiplier, 0f, 2f, false);
-                if (TextSliderPair("Tech Drag: ", ref td, ref Class1.TechDrag, 0, 5f, false, 0.01f))
+                if (TextSliderPair("Tech Drag: ", ref td, ref Class1.TechDrag, 0, 10f, false, 0.005f))
                 {
                     ResetTechDrag();
                 }
-                if (TextSliderPair("World Drag: ", ref wd, ref Class1.WorldDrag, 0f, 10f, false))
+                if (TextSliderPair("World Drag: ", ref wd, ref Class1.WorldDrag, 0f, 10f, false, 0.005f))
                 {
                     ResetWorldDrag();
                 }
@@ -451,8 +451,8 @@ namespace Misc_Mods
         {
             foreach (var tank in FindObjectsOfType<Tank>())
             {
-                tank.airSpeedDragFactor = Class1.TechDrag * 0.001f;
-                tank.airSpeedAngularDragFactor = Class1.TechDrag * 0.001f;
+                tank.airSpeedDragFactor = Class1.TechDrag * 0.0005f;
+                tank.airSpeedAngularDragFactor = Class1.TechDrag * 0.0005f;
             }
         }
         public static void ResetWorldDrag()
