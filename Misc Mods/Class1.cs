@@ -152,14 +152,16 @@ namespace Misc_Mods
                             //> force, rbody
                             codes.Insert(i + 0, new CodeInstruction(OpCodes.Callvirt, Rigidbody_get_velocity)); // Push velocity from 'rigidbody' on stack
                             //> force, velocity
-                            codes.Insert(i + 1, new CodeInstruction(OpCodes.Ldarg_0)); // Not sure yet
+                            codes.Insert(i + 1, new CodeInstruction(OpCodes.Ldarg_0)); // Put 'this' on stack
+                            //> force, velocity, this
                             codes.Insert(i + 2, new CodeInstruction(OpCodes.Ldfld, FanJet_m_Effector)); // Push field on stack
                             //> force, velocity, effector
                             codes.Insert(i + 3, new CodeInstruction(OpCodes.Callvirt, Transform_get_forward)); // Push forward vector from 'effector'
                             //> force, velocity, direction
                             codes.Insert(i + 4, new CodeInstruction(OpCodes.Call, Vector3_Project)); // Project velocity to forward
                             //> force, proj_vel
-                            codes.Insert(i + 5, new CodeInstruction(OpCodes.Ldarg_0)); // Not sure yet
+                            codes.Insert(i + 5, new CodeInstruction(OpCodes.Ldarg_0)); // Put 'this' on stack
+                            //> force, proj_vel, this
                             codes.Insert(i + 6, new CodeInstruction(OpCodes.Call, FanJet_get_AbsSpinRateCurrent)); // Push the absolute spin rate
                             //> force, proj_vel, abs_spin
                             codes.Insert(i + 7, new CodeInstruction(OpCodes.Call, Vector3_op_Multiply_VF)); // Multiplies with stack, push result
@@ -307,7 +309,7 @@ namespace Misc_Mods
                     }
                     if (GUILayout.Button("Export all textures"))
                     {
-                        string path = "_Export/Textures/" + module.name;
+                        string path = "_Export/Textures/" + SafeName(module.name);
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
@@ -328,7 +330,7 @@ namespace Misc_Mods
                         List<Vector2> invalid = new List<Vector2>();
                         foreach (var mr in module.GetComponentsInChildren<Renderer>(true))
                         {
-                            var mat = mr.sharedMaterial;
+                            var mat = mr.material;
 
                             foreach (string key in mat.shaderKeywords)
                                 if (key == "_SKINS") // Do not dump
@@ -394,6 +396,18 @@ namespace Misc_Mods
                         }
                         System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + ".json", Total);
                         log = "Exported " + module.name + ".json to " + path;
+                    }
+                    if (GUILayout.Button("Export Prefab JSON"))
+                    {
+                        string path = "_Export/BlockJson";
+                        BlockInfoDumper.DeepDumpClassCache.Clear();
+                        var Total = BlockInfoDumper.DeepDumpAll(ManSpawn.inst.GetBlockPrefab((BlockTypes)module.visible.ItemType).transform, 6).ToString();
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + "_prefab.json", Total);
+                        log = "Exported " + module.name + "prefab_.json to " + path;
                     }
                     if (GUILayout.Button("Export FireData Projectile JSON"))
                     {
