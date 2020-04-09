@@ -389,6 +389,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
+                        BlockInfoDumper.CachedTransforms.Clear();
                         var Total = BlockInfoDumper.DeepDumpAll(module.transform, 6).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {
@@ -401,6 +402,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
+                        BlockInfoDumper.CachedTransforms.Clear();
                         var Total = BlockInfoDumper.DeepDumpAll(ManSpawn.inst.GetBlockPrefab((BlockTypes)module.visible.ItemType).transform, 6).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {
@@ -413,6 +415,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/BlockJson";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
+                        BlockInfoDumper.CachedTransforms.Clear();
                         var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 12).ToString();
                         if (!System.IO.Directory.Exists(path))
                         {

@@ -3,6 +3,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Misc_Mods
 {
@@ -83,16 +84,21 @@ namespace Misc_Mods
                 // Rarity
                 ITEM.Add("blocklimit_cost", ManBlockLimiter.inst.GetBlockCost(id));
                 // Health
-                var md = Base.GetComponent<ModuleDamage>();
-                if (md) // Redundant check
+                var mdmg = Base.GetComponent<ModuleDamage>();
+                if (mdmg) // Redundant check
                 {
-                    ITEM.Add("health", md.maxHealth);
-                    ITEM.Add("fragility", md.m_DamageDetachFragility);
-                    if (Block.visible && Block.visible.damageable)
-                    {
-                        ITEM.Add("damageable_type", Block.visible.damageable.DamageableType.ToString());
-                        ITEM.Add("damageable_type_int", (int)Block.visible.damageable.DamageableType);
-                    }
+                    ITEM.Add("health", mdmg.maxHealth);
+                    ITEM.Add("fragility", mdmg.m_DamageDetachFragility);
+
+                    // Death Explosion
+                    GetExplosionData(ITEM, mdmg.deathExplosion, "DeathExplosion");
+                }
+                // Damageability
+                var dmgb = Block.GetComponent<Damageable>();
+                if (dmgb) // Redundant check
+                {
+                    ITEM.Add("damageable_type", dmgb.DamageableType.ToString());
+                    ITEM.Add("damageable_type_int", (int)dmgb.DamageableType);
                 }
                 try
                 {
@@ -121,6 +127,8 @@ namespace Misc_Mods
                 GetShieldData(ITEM, Base);
                 // ModuleHover
                 GetHoverData(ITEM, Base);
+                // ModuleBooster
+                GetBoosterData(ITEM, Base);
                 // ModuleWheels
                 GetWheelData(ITEM, Base);
 
@@ -159,6 +167,8 @@ namespace Misc_Mods
 
         static readonly FieldInfo WeaponRound_Damage = typeof(WeaponRound).GetField("m_Damage", binding);
         static readonly FieldInfo WeaponRound_DamageType = typeof(WeaponRound).GetField("m_DamageType", binding);
+        static readonly FieldInfo Projectile_Explosion= typeof(Projectile).GetField("m_Explosion", binding);
+        static readonly FieldInfo Projectile_LifeTime = typeof(Projectile).GetField("m_LifeTime", binding);
         static void GetFireData(JObject BLOCK, GameObject Base)
         {
             try
@@ -176,6 +186,14 @@ namespace Misc_Mods
                     {
                         DATA.Add("damage", (int)WeaponRound_Damage.GetValue(firedata.m_BulletPrefab));
                         DATA.Add("damage_type", ((ManDamage.DamageType)WeaponRound_DamageType.GetValue(firedata.m_BulletPrefab)).ToString());
+                        var projectile = firedata.m_BulletPrefab.GetComponent<Projectile>();
+                        if (projectile)
+                        {
+                            DATA.Add("lifetime", (float)Projectile_LifeTime.GetValue(projectile));
+                            var explosion = (Transform)Projectile_Explosion.GetValue(projectile);
+                            if (explosion)
+                                GetExplosionData(DATA, explosion);
+                        }
                     }
                     BLOCK.Add("FireData", DATA);
                 }
@@ -307,9 +325,9 @@ namespace Misc_Mods
                         { "power", obj.HoverPower },
                         { "size", (int)obj.HoverSize },
                         { "jet_count", jets.Length },
-                        { "jet_range", jets[0].forceRangeMax },
-                        { "jet_radius", jets[0].jetRadius },
-                        { "jet_force", jets[0].forceMax },
+                        { "range", jets[0].forceRangeMax },
+                        { "radius", jets[0].jetRadius },
+                        { "force", jets[0].forceMax },
                     };
                     BLOCK.Add("ModuleHover", DATA);
                 }
@@ -326,16 +344,54 @@ namespace Misc_Mods
                 var obj = Base.GetComponent<ModuleBooster>();
                 if (obj != null)
                 {
-                    var jets = Base.GetComponentsInChildren<BoosterJet>(true);
-                    var DATA = new JObject
+
+                    JObject DATA = new JObject
                     {
-                        { "fuel_per_second", obj.FuelBurnPerSecond() },
-                        { "jet_count", jets.Length },
-                        { "jet_force", (float)m_Force.GetValue(jets[0]) },
-                        { "jet_falloff", (float)m_FireRateFalloff.GetValue(jets[0]) },
+                        { "uses_drive_controls", obj.UsesDriveControls },
                     };
+                    var jets = Base.GetComponentsInChildren<BoosterJet>(true);
+                    if (jets == null || jets.Length == 0)
+                    {
+                        var fans = Base.GetComponentsInChildren<FanJet>(true);
+                        if (fans == null || fans.Length == 0)
+                        {
+                            DATA.Add("is_rotor", obj.IsRotor);
+                            DATA.Add("fan_count", fans.Length);
+                            DATA.Add("force", (float)m_Force.GetValue(fans[0]));
+                            DATA.Add("spin_speed", fans[0].spinSpeed);
+                            DATA.Add("spin_delta", fans[0].spinDelta);
+                            DATA.Add("force", fans[0].force);
+                            DATA.Add("back_force", fans[0].backForce);
+                        }
+                    }
+                    else
+                    {
+                        DATA.Add("fuel_per_second", obj.FuelBurnPerSecond());
+                        DATA.Add("jet_count", jets.Length);
+                        DATA.Add("force", (float)m_Force.GetValue(jets[0]));
+                        DATA.Add("falloff_rate", (float)m_FireRateFalloff.GetValue(jets[0]));
+                    }
                     BLOCK.Add("ModuleBooster", DATA);
                 }
+            }
+            catch { }
+        }
+
+        static void GetExplosionData(JObject BLOCK, Transform ExplosionBase, string newBlockName = "Explosion")
+        {
+            try
+            {
+                if (ExplosionBase == null) return;
+                var explosion = ExplosionBase.GetComponent<Explosion>();
+                if (explosion == null) return;
+                var DATA = new JObject
+                {
+                    { "radius_outer", explosion.m_EffectRadius },
+                    { "radius_inner", explosion.m_EffectRadiusMaxStrength },
+                    { "damage", explosion.m_MaxDamageStrength },
+                    { "impulse", explosion.m_MaxImpulseStrength },
+                };
+                BLOCK.Add(newBlockName, DATA);
             }
             catch { }
         }
@@ -399,17 +455,20 @@ namespace Misc_Mods
             catch { }
         }
 
-        public static System.Collections.Generic.Dictionary<object, string> DeepDumpClassCache = new System.Collections.Generic.Dictionary<object, string>();
+        public static Dictionary<object, string> DeepDumpClassCache = new Dictionary<object, string>();
+        public static Dictionary<Transform, string> CachedTransforms = new Dictionary<Transform, string>();
 
-        private struct h { public string name;  public Type type; public Component component; public int depth; public string path; public JObject obj; }
-        private static System.Collections.Generic.List<h> hl = new System.Collections.Generic.List<h>();
+        private struct h { public string name; public Type type; public Component component; public int depth; public string path; public JObject obj; }
+        private static List<h> hl = new List<h>();
 
         public static JToken DeepDumpAll(Transform transform, int Depth)
         {
             hl.Clear();
+            CachedTransforms.Add(transform, "/");
             var d = DeepDumpTransform(transform, Depth);
-            foreach (var l in hl)
+            for (int i = 0; i < hl.Count; i++)
             {
+                var l = hl[i];
                 string name = l.name, _name = name;
                 int _c = 0;
                 while (l.obj.TryGetValue(_name, out _))
@@ -422,7 +481,7 @@ namespace Misc_Mods
             return d;
         }
 
-        static JToken DeepDumpTransform(Transform transform, int Depth, string path = "#")
+        static JToken DeepDumpTransform(Transform transform, int Depth, string path = "")
         {
             if (Depth < 0)
             {
@@ -444,7 +503,9 @@ namespace Misc_Mods
                 {
                     _name = name + " (" + (++_c).ToString() + ")";
                 }
-                OBJ.Add(_name, DeepDumpTransform(Child, Depth, path + "/" + Child.name));
+                string newpath = path + "/" + Child.name;
+                CachedTransforms.Add(Child, newpath);
+                OBJ.Add(_name, DeepDumpTransform(Child, Depth, newpath));
             }
             return OBJ;
         }
@@ -461,19 +522,16 @@ namespace Misc_Mods
 
             }
             var OBJ = new JObject();
-            Console.WriteLine("-".PadRight(Depth * 2) + type.Name);
+            //Console.WriteLine("-".PadRight(Depth * 2) + type.Name);
             if (type == ttrans)
             {
                 try
                 {
                     DeepDumpObjInternal(type, component, Depth, path, OBJ, "gameObject", transgo.GetValue(component), transgo.PropertyType);
                 }
-                catch
-                {
-
-                }
+                catch { }
             }
-            var fields = type.GetFields(binding | BindingFlags.DeclaredOnly);
+            var fields = type.GetFields(binding);// | BindingFlags.DeclaredOnly);
             foreach (var field in fields)
             {
                 try
@@ -482,77 +540,107 @@ namespace Misc_Mods
                 }
                 catch (Exception E)
                 {
-                    Console.WriteLine($"{type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                    Console.WriteLine($"{field.Name} {type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                    //OBJ.Add(field.Name, "Error");
                 }
             }
             var props = type.GetProperties(binding);// | BindingFlags.DeclaredOnly);
             foreach (var prop in props)
             {
-                if (prop.CanWrite)
+                if (!prop.CanRead)
+                {
+                    OBJ.Add(prop.Name, "Write Only: " + prop.PropertyType.ToString());
+                }
+                else
                 {
                     try
                     {
-                        DeepDumpObjInternal(type, component, Depth, path, OBJ, prop.Name, prop.GetValue(component, null), prop.PropertyType);
+                        DeepDumpObjInternal(type, component, Depth, path, OBJ, prop.Name, prop.GetValue(component), prop.PropertyType);
                     }
                     catch (Exception E)
                     {
-                        Console.WriteLine($"{type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                        Console.WriteLine($"{prop.Name} {type.Name} {Depth}: {E.Message}, {E.StackTrace}");
+                        //OBJ.Add(prop.Name, "Error");
                     }
                 }
             }
             return OBJ;
         }
 
-        private static void DeepDumpObjInternal(Type type, object component, int Depth, string path, JObject OBJ, string cName, object cValue, Type cType)
+        private static void DeepDumpObjInternal(Type type, object component, int Depth, string path, JObject OBJ, string fieldName, object fieldValue, Type fieldType)
         {
-            try
+            if (fieldType == tmesh)
             {
-                if (cType == tmesh)
+                OBJ.Add(fieldName, new JObject());
+            }
+            else if (fieldType == ttrans)
+            {
+                if (type == ttrans)
                 {
-                    OBJ.Add(cName, new JObject());
+                    OBJ.Add(fieldName, "Transform " + (fieldValue as Transform).name);
                 }
-                else if (cType == ttrans && type == ttrans)
+                else
                 {
-                    OBJ.Add(cName, "Transform " + (cValue as Transform).name);
-                }
-                else try
+                    Transform fTransfrom = fieldValue as Transform;
+                    if (CachedTransforms.TryGetValue(fTransfrom, out string fPath))
                     {
-                        if (cValue is System.Collections.IList iList)
+                        Console.WriteLine("Using past transform " + fTransfrom.name + "  " + path);
+                        OBJ.Add(fieldName, fPath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Discovered new transform " + fTransfrom.name + "  " + path);
+                        OBJ.Add(fieldName, DeepDumpTransform(fTransfrom, Depth, path));
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    JValue fieldJValue = JToken.FromObject(fieldValue) as JValue;
+                    if (fieldJValue != null)
+                    {
+                        OBJ.Add(fieldName, fieldJValue);
+                        return;
+                    }
+                    else if (fieldType.IsClass)
+                    {
+                        if (DeepDumpClassCache.TryGetValue(fieldValue, out string _path))
+                        {
+                            OBJ.Add(_path);
+                        }
+                        else
+                        {
+                            string pathAdd = path + "/" + fieldName;
+                            DeepDumpClassCache.Add(fieldValue, pathAdd);
+                            OBJ.Add(fieldName, DeepDumpObj(fieldType, fieldValue, Depth - 1, pathAdd));
+                        }
+                        return;
+                    }
+                    if (fieldValue is System.Collections.IList iList)
+                    {
+                        try
                         {
                             Type itemType;
                             if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
                             else itemType = type.GetElementType();
                             for (int i = 0; i < iList.Count; i++)
                             {
-                                OBJ.Add(cName, DeepDumpObj(itemType, iList[i], Depth - 1, path + "/" + cName + "[" + i + "]"));
+                                OBJ.Add(fieldName, DeepDumpObj(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
                             }
+                            return;
                         }
-                        else
-                            OBJ.Add(cName, JToken.FromObject(cValue));
-                    }
-                    catch
-                    {
-                        OBJ.Add(cName, JToken.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(cValue)));
-                    }
-            }
-            catch
-            {
-                try
-                {
-                    if (DeepDumpClassCache.TryGetValue(cValue, out string _path))
-                    {
-                        OBJ.Add(_path);
-                    }
-                    else
-                    {
-                        string pathAdd = path + "/" + cName;
-                        DeepDumpClassCache.Add(cValue, pathAdd);
-                        OBJ.Add(cName, DeepDumpObj(cType, cValue, Depth - 1, pathAdd));
+                        catch { }
                     }
                 }
+                catch { }
+
+                try { OBJ.Add(fieldName, JToken.FromObject(fieldValue)); }
                 catch
                 {
-                    OBJ.Add(cName, "Error");
+                    try { OBJ.Add(fieldName, JToken.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(fieldValue))); }
+                    catch { /*OBJ.Add(fieldName, "Error");*/ }
                 }
             }
         }
