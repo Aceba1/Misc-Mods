@@ -458,7 +458,7 @@ namespace Misc_Mods
         public static Dictionary<object, string> DeepDumpClassCache = new Dictionary<object, string>();
         public static Dictionary<Transform, string> CachedTransforms = new Dictionary<Transform, string>();
 
-        private struct h { public string name; public Type type; public Component component; public int depth; public string path; public JObject obj; }
+        private struct h { public Type type; public Component component; public int depth; public string path; public JObject obj; }
         private static List<h> hl = new List<h>();
 
         public static JToken DeepDumpAll(Transform transform, int Depth)
@@ -469,14 +469,7 @@ namespace Misc_Mods
             for (int i = 0; i < hl.Count; i++)
             {
                 var l = hl[i];
-                string name = l.name, _name = name;
-                int _c = 0;
-                while (l.obj.TryGetValue(_name, out _))
-                {
-                    _name = name + " (" + (++_c).ToString() + ")";
-                }
-                //DeepDumpClassCache.Add(l.component, l.path + _name);
-                l.obj.Add(_name, DeepDumpObj(l.type, l.component, l.depth - 1, l.path));
+                DeepDumpComponents(l.obj, l.type, l.component, l.depth - 1, l.path);
             }
             return d;
         }
@@ -492,7 +485,7 @@ namespace Misc_Mods
             foreach (var component in components)
             {
                 Type type = component.GetType();
-                hl.Add(new h { name = type.Name, type = type, component = component, depth = Depth - 1, path = path, obj = OBJ });
+                hl.Add(new h { type = type, component = component, depth = Depth - 1, path = path, obj = OBJ });
             }
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
@@ -510,10 +503,51 @@ namespace Misc_Mods
             return OBJ;
         }
 
-        static Type ttrans = typeof(Transform), tmesh = typeof(Mesh);
+        static Type ttrans = typeof(Transform), tmesh = typeof(Mesh), tmono = typeof(MonoBehaviour);
         static PropertyInfo transgo = ttrans.GetProperty("gameObject", binding);
 
-        static JToken DeepDumpObj(Type type, object component, int Depth, string path)
+        static void DeepDumpComponents(JObject target, Type type, object component, int Depth, string path)
+        {
+            if (component is MonoBehaviour)
+            {
+                var _type = type;
+                do
+                {
+                    string tname = _type.Name, _name = tname;
+                    for (int _c = 1; target.TryGetValue(_name, out _); _c++)
+                        _name = tname + " " + _c.ToString();
+                    target.Add(tname, DeepDumpObj(_type, component, Depth - 1, path));
+                    _type = _type.BaseType;
+                }
+                while (_type != null && _type != tmono);
+            }
+            else
+            {
+                target.Add(type.Name, DeepDumpObj(type, component, Depth - 1, path));
+            }
+        }
+
+        static JToken DeepDumpComponent(Type type, object component, int Depth, string path)
+        {
+            var OBJ = new JObject();
+            if (component is MonoBehaviour)
+            {
+                var _type = type;
+                do
+                {
+                    DeepDumpObj(_type, component, Depth, path, OBJ);
+                    _type = _type.BaseType;
+                }
+                while (_type != null && _type != tmono);
+            }
+            else
+            {
+                DeepDumpObj(type, component, Depth, path, OBJ);
+            }
+            return OBJ;
+        }
+
+        static JToken DeepDumpObj(Type type, object component, int Depth, string path, JObject OBJ = null)
         {
             if (Depth < 0)
             {
@@ -521,7 +555,8 @@ namespace Misc_Mods
                 return "Depth exceeded!";
 
             }
-            var OBJ = new JObject();
+            if (OBJ == null)
+                OBJ = new JObject();
             //Console.WriteLine("-".PadRight(Depth * 2) + type.Name);
             if (type == ttrans)
             {
@@ -531,9 +566,10 @@ namespace Misc_Mods
                 }
                 catch { }
             }
-            var fields = type.GetFields(binding);// | BindingFlags.DeclaredOnly);
+            var fields = type.GetFields(binding);
             foreach (var field in fields)
             {
+                if (OBJ.TryGetValue(field.Name, out _)) continue;
                 try
                 {
                     DeepDumpObjInternal(type, component, Depth, path, OBJ, field.Name, field.GetValue(component), field.FieldType);
@@ -544,9 +580,10 @@ namespace Misc_Mods
                     //OBJ.Add(field.Name, "Error");
                 }
             }
-            var props = type.GetProperties(binding);// | BindingFlags.DeclaredOnly);
+            var props = type.GetProperties(binding);
             foreach (var prop in props)
             {
+                if (OBJ.TryGetValue(prop.Name, out _)) continue;
                 if (!prop.CanRead)
                 {
                     OBJ.Add(prop.Name, "Write Only: " + prop.PropertyType.ToString());
@@ -569,6 +606,7 @@ namespace Misc_Mods
 
         private static void DeepDumpObjInternal(Type type, object component, int Depth, string path, JObject OBJ, string fieldName, object fieldValue, Type fieldType)
         {
+            //if (OBJ.TryGetValue(fieldName, out _)) return;
             if (fieldType == tmesh)
             {
                 OBJ.Add(fieldName, new JObject());
@@ -608,13 +646,13 @@ namespace Misc_Mods
                     {
                         if (DeepDumpClassCache.TryGetValue(fieldValue, out string _path))
                         {
-                            OBJ.Add(_path);
+                            OBJ.Add(fieldName, _path);
                         }
                         else
                         {
                             string pathAdd = path + "/" + fieldName;
                             DeepDumpClassCache.Add(fieldValue, pathAdd);
-                            OBJ.Add(fieldName, DeepDumpObj(fieldType, fieldValue, Depth - 1, pathAdd));
+                            OBJ.Add(fieldName, DeepDumpComponent(fieldType, fieldValue, Depth - 1, pathAdd));
                         }
                         return;
                     }
@@ -627,7 +665,7 @@ namespace Misc_Mods
                             else itemType = type.GetElementType();
                             for (int i = 0; i < iList.Count; i++)
                             {
-                                OBJ.Add(fieldName, DeepDumpObj(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
+                                OBJ.Add(fieldName, DeepDumpComponent(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
                             }
                             return;
                         }
