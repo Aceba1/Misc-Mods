@@ -518,7 +518,7 @@ namespace Misc_Mods
                     while(target.TryGetValue(_name, out _))
                         _name = tname + " " + (++_c).ToString();
 
-                    target.Add(tname, DeepDumpObj(_type, component, Depth - 1, path));
+                    target.Add(_name, DeepDumpObj(_type, component, Depth - 1, path));
                     _type = _type.BaseType;
                 }
             }
