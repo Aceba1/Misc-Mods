@@ -503,7 +503,7 @@ namespace Misc_Mods
             return OBJ;
         }
 
-        static Type ttrans = typeof(Transform), tmesh = typeof(Mesh), tmono = typeof(MonoBehaviour);
+        static Type ttrans = typeof(Transform), tmesh = typeof(Mesh), tmono = typeof(MonoBehaviour), tmodule = typeof(Module);
         static PropertyInfo transgo = ttrans.GetProperty("gameObject", binding);
 
         static void DeepDumpComponents(JObject target, Type type, object component, int Depth, string path)
@@ -511,7 +511,7 @@ namespace Misc_Mods
             if (component is MonoBehaviour)
             {
                 var _type = type;
-                while (_type != null && _type != tmono)
+                while (_type != null && _type != tmono && _type != tmodule)
                 {
                     string tname = _type.Name, _name = tname;
                     int _c = 0;
