@@ -511,15 +511,16 @@ namespace Misc_Mods
             if (component is MonoBehaviour)
             {
                 var _type = type;
-                do
+                while (_type != null && _type != tmono)
                 {
                     string tname = _type.Name, _name = tname;
-                    for (int _c = 1; target.TryGetValue(_name, out _); _c++)
-                        _name = tname + " " + _c.ToString();
+                    int _c = 0;
+                    while(target.TryGetValue(_name, out _))
+                        _name = tname + " " + (++_c).ToString();
+
                     target.Add(tname, DeepDumpObj(_type, component, Depth - 1, path));
                     _type = _type.BaseType;
                 }
-                while (_type != null && _type != tmono);
             }
             else
             {
