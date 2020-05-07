@@ -524,7 +524,11 @@ namespace Misc_Mods
             }
             else
             {
-                target.Add(type.Name, DeepDumpObj(type, component, Depth - 1, path));
+                string tname = type.Name, _name = tname;
+                int _c = 0;
+                while (target.TryGetValue(_name, out _))
+                    _name = tname + " " + (++_c).ToString();
+                target.Add(_name, DeepDumpObj(type, component, Depth - 1, path));
             }
         }
 
