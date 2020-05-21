@@ -143,7 +143,8 @@ public static class LocalObjExporter
 
         foreach (Vector3 vn in m.normals)
         {
-            sb.Append(string.Format("vn {0} {1} {2}\n", vn.x, vn.y, vn.z));
+            Vector3 rvn = RotOffset * vn;
+            sb.Append(string.Format("vn {0} {1} {2}\n", rvn.x, rvn.y, rvn.z));
         }
         sb.Append("\n");
 

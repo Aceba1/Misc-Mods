@@ -198,7 +198,7 @@ namespace Misc_Mods
         private Rect WindowRect = new Rect(0, 0, 800, 400);
         private Vector2 ScrollPos = Vector2.zero;
         private bool ShowGUI = false;
-        private TankBlock module;
+        private Visible module;
 
         private void Update()
         {
@@ -206,7 +206,7 @@ namespace Misc_Mods
             {
                 try
                 {
-                    module = Singleton.Manager<ManPointer>.inst.targetVisible.block;
+                    module = Singleton.Manager<ManPointer>.inst.targetVisible;
                 }
                 catch
                 {
@@ -274,28 +274,41 @@ namespace Misc_Mods
             {
                 if (Singleton.playerTank != null)
                 {
-                    if (GUILayout.Button("Export Current (player) Tech with GrabIt Tools"))
+                    //if (GUILayout.Button("Export Player Tech Model (with GrabIt Tools)"))
+                    //{
+                    //    ObjGrabItExporter.ExportWithGrabIt(Singleton.playerTank.gameObject);
+                    //    log = "Processing, please be patient...";
+                    //}
+                    if (GUILayout.Button("Export Player Tech Model"))
                     {
-                        ObjGrabItExporter.ExportWithGrabIt(Singleton.playerTank.gameObject);
-                        log = "Processing, please be patient...";
+                        string path = "_Export/Techs";
+                        string Total = LocalObjExporter.DoExport(Singleton.playerTank.trans);
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        string safeName = SafeName(Singleton.playerTank.name);
+                        System.IO.File.WriteAllText(path + "/" + safeName + ".obj", Total);
+                        log = "Exported " + safeName + ".obj to " + path;
                     }
                 }
                 if (module != null)
                 {
-                    if (GUILayout.Button("Export Block Model"))
+                    if (GUILayout.Button("Export " + module.type.ToString() + " Model"))
                     {
-                        string path = "_Export/Blocks";
+                        string path = "_Export/Models";
                         string Total = LocalObjExporter.DoExport(module.transform);
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
-                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + ".obj", Total);
-                        log = "Exported " + module.name + ".obj to " + path;
+                        string safeName = SafeName(module.name);
+                        System.IO.File.WriteAllText(path + "/" + safeName + ".obj", Total);
+                        log = "Exported " + safeName + ".obj to " + path;
                     }
-                    if (GUILayout.Button("Export Parts of Selected Block"))
+                    if (GUILayout.Button("Export Parts of Selected " + module.type.ToString())) 
                     {
-                        string path = "_Export/Parts/" + module.name;
+                        string path = "_Export/ModelParts/" + SafeName(module.name);
                         if (!System.IO.Directory.Exists(path))
                         {
                             System.IO.Directory.CreateDirectory(path);
@@ -315,16 +328,19 @@ namespace Misc_Mods
                             System.IO.Directory.CreateDirectory(path);
                         }
 
-                        Texture2D original = ManUI.inst.GetSprite(module.visible.m_ItemType).texture;
+                        Texture2D original = ManUI.inst.GetSprite(module.m_ItemType).texture;
                         Texture2D copy = duplicateTexture(original);
                         System.IO.File.WriteAllBytes(path + "/icon.png", copy.EncodeToPNG());
 
-                        var type = ManSpawn.inst.GetCorporation(module.BlockType);
-                        var maintex = ManCustomSkins.inst.GetSkinTexture(type, 0);
+                        if (module.type == ObjectTypes.Block)
+                        {
+                            var type = ManSpawn.inst.GetCorporation(module.block.BlockType);
+                            var maintex = ManCustomSkins.inst.GetSkinTexture(type, 0);
 
-                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_1.png", duplicateTexture(maintex.m_Albedo).EncodeToPNG());
-                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_2.png", duplicateTexture(maintex.m_Metal).EncodeToPNG());
-                        System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_3.png", duplicateTexture(maintex.m_Emissive).EncodeToPNG());
+                            System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_1.png", duplicateTexture(maintex.m_Albedo).EncodeToPNG());
+                            System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_2.png", duplicateTexture(maintex.m_Metal).EncodeToPNG());
+                            System.IO.File.WriteAllBytes(path + "/" + SafeName(type.ToString()) + "_3.png", duplicateTexture(maintex.m_Emissive).EncodeToPNG());
+                        }
 
                         Dictionary<Texture, string> buffer = new Dictionary<Texture, string>();
                         List<Vector2> invalid = new List<Vector2>();
@@ -335,8 +351,10 @@ namespace Misc_Mods
                             foreach (string key in mat.shaderKeywords)
                                 if (key == "_SKINS") // Do not dump
                                 {
+                                    // Skin textures are oddly sized, this is as a filter to catch any potential leaks
                                     invalid.Add(new Vector2(mat.mainTexture.width, mat.mainTexture.height));
-                                    goto skipdump; // continue would not work here
+
+                                    goto skipdump; // 'continue' would not work here
                                 }
 
                             var tex1 = mat.mainTexture;
@@ -348,6 +366,7 @@ namespace Misc_Mods
                             var tex3 = mat.GetTexture("_EmissionMap");
                             if (tex3 != null && !QuickCompare(buffer, tex3))//buffer.ContainsKey(tex3))
                                 buffer.Add(tex3, mr.name + "_" + tex3.name + "_3.png");
+
                             skipdump:;
                         }
                         foreach (var tex in buffer)
@@ -379,15 +398,15 @@ namespace Misc_Mods
         {
             try
             {
-                if (GUILayout.Button("Export all block info"))
+                if (GUILayout.Button("Export BlockInfoDump.JSON"))
                 {
                     log = "Logged " + BlockInfoDumper.Dump().ToString() + " blocks to file";
                 }
                 if (module != null)
                 {
-                    if (GUILayout.Button("Export Block JSON"))
+                    if (GUILayout.Button("Export " + module.type.ToString() + " JSON"))
                     {
-                        string path = "_Export/BlockJson";
+                        string path = "_Export/" + module.type.ToString() + "Json";
                         BlockInfoDumper.DeepDumpClassCache.Clear();
                         BlockInfoDumper.CachedTransforms.Clear();
                         var Total = BlockInfoDumper.DeepDumpAll(module.transform, 6).ToString();
@@ -395,34 +414,40 @@ namespace Misc_Mods
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
-                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + ".json", Total);
-                        log = "Exported " + module.name + ".json to " + path;
+                        string safeName = SafeName(module.name);
+                        System.IO.File.WriteAllText(path + "/" + safeName + ".json", Total);
+                        log = "Exported " + safeName + ".json to " + path;
                     }
-                    if (GUILayout.Button("Export Prefab JSON"))
+                    if (module.type == ObjectTypes.Block)
                     {
-                        string path = "_Export/BlockJson";
-                        BlockInfoDumper.DeepDumpClassCache.Clear();
-                        BlockInfoDumper.CachedTransforms.Clear();
-                        var Total = BlockInfoDumper.DeepDumpAll(ManSpawn.inst.GetBlockPrefab((BlockTypes)module.visible.ItemType).transform, 6).ToString();
-                        if (!System.IO.Directory.Exists(path))
+                        if (GUILayout.Button("Export Prefab JSON"))
                         {
-                            System.IO.Directory.CreateDirectory(path);
+                            string path = "_Export/BlockJson";
+                            BlockInfoDumper.DeepDumpClassCache.Clear();
+                            BlockInfoDumper.CachedTransforms.Clear();
+                            var Total = BlockInfoDumper.DeepDumpAll(ManSpawn.inst.GetBlockPrefab((BlockTypes)module.ItemType).transform, 6).ToString();
+                            if (!System.IO.Directory.Exists(path))
+                            {
+                                System.IO.Directory.CreateDirectory(path);
+                            }
+                            string safeName = SafeName(module.name);
+                            System.IO.File.WriteAllText(path + "/" + safeName + "_prefab.json", Total);
+                            log = "Exported " + safeName + "prefab_.json to " + path;
                         }
-                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + "_prefab.json", Total);
-                        log = "Exported " + module.name + "prefab_.json to " + path;
-                    }
-                    if (GUILayout.Button("Export FireData Projectile JSON"))
-                    {
-                        string path = "_Export/BlockJson";
-                        BlockInfoDumper.DeepDumpClassCache.Clear();
-                        BlockInfoDumper.CachedTransforms.Clear();
-                        var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 12).ToString();
-                        if (!System.IO.Directory.Exists(path))
+                        if (GUILayout.Button("Export FireData Projectile JSON"))
                         {
-                            System.IO.Directory.CreateDirectory(path);
+                            string path = "_Export/BlockJson";
+                            BlockInfoDumper.DeepDumpClassCache.Clear();
+                            BlockInfoDumper.CachedTransforms.Clear();
+                            var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 12).ToString();
+                            if (!System.IO.Directory.Exists(path))
+                            {
+                                System.IO.Directory.CreateDirectory(path);
+                            }
+                            string safeName = SafeName(module.name);
+                            System.IO.File.WriteAllText(path + "/" + safeName + "_BulletPrefab.json", Total);
+                            log = "Exported " + safeName + "_BulletPrefab.json to " + path;
                         }
-                        System.IO.File.WriteAllText(path + "/" + SafeName(module.name) + "_BulletPrefab.json", Total);
-                        log = "Exported " + module.name + "_BulletPrefab.json to " + path;
                     }
                 }
             }
