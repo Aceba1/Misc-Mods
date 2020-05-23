@@ -641,40 +641,47 @@ namespace Misc_Mods
             {
                 try
                 {
-                    JValue fieldJValue = JToken.FromObject(fieldValue) as JValue;
-                    if (fieldJValue != null)
+                    if (fieldValue == null)
                     {
-                        OBJ.Add(fieldName, fieldJValue);
-                        return;
+                        OBJ.Add(fieldName, JValue.CreateNull());
                     }
-                    else if (fieldType.IsClass)
+                    else
                     {
-                        if (DeepDumpClassCache.TryGetValue(fieldValue, out string _path))
+                        JValue fieldJValue = JToken.FromObject(fieldValue) as JValue;
+                        if (fieldJValue != null)
                         {
-                            OBJ.Add(fieldName, _path);
+                            OBJ.Add(fieldName, fieldJValue);
+                            return;
                         }
-                        else
+                        else if (fieldType.IsClass)
                         {
-                            string pathAdd = path + "/" + fieldName;
-                            DeepDumpClassCache.Add(fieldValue, pathAdd);
-                            OBJ.Add(fieldName, DeepDumpComponent(fieldType, fieldValue, Depth - 1, pathAdd));
-                        }
-                        return;
-                    }
-                    if (fieldValue is System.Collections.IList iList)
-                    {
-                        try
-                        {
-                            Type itemType;
-                            if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
-                            else itemType = type.GetElementType();
-                            for (int i = 0; i < iList.Count; i++)
+                            if (DeepDumpClassCache.TryGetValue(fieldValue, out string _path))
                             {
-                                OBJ.Add(fieldName, DeepDumpComponent(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
+                                OBJ.Add(fieldName, _path);
+                            }
+                            else
+                            {
+                                string pathAdd = path + "/" + fieldName;
+                                DeepDumpClassCache.Add(fieldValue, pathAdd);
+                                OBJ.Add(fieldName, DeepDumpComponent(fieldType, fieldValue, Depth - 1, pathAdd));
                             }
                             return;
                         }
-                        catch { }
+                        if (fieldValue is System.Collections.IList iList)
+                        {
+                            try
+                            {
+                                Type itemType;
+                                if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
+                                else itemType = type.GetElementType();
+                                for (int i = 0; i < iList.Count; i++)
+                                {
+                                    OBJ.Add(fieldName, DeepDumpComponent(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
+                                }
+                                return;
+                            }
+                            catch { }
+                        }
                     }
                 }
                 catch { }
