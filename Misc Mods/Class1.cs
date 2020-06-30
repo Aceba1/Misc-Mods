@@ -484,11 +484,17 @@ namespace Misc_Mods
             }
         }
 
-        string fjm, fjr, mwm, bjm, wd, td;
+        string fjm, fjr, mwm, bjm, wd, td, esr;
         private void WorldMultiplierPage(int ID)
         {
             try
             {
+                TextSliderPair("Enemy spawn rate (seconds between): ", ref esr, ref ManPop.inst.m_MinPeriodBetweenSpawns, 0f, 120f, false);
+                if (GUILayout.Button("Force enemy spawn now"))
+                    ManPop.inst.DebugForceSpawn();
+
+                GUILayout.Space(16);
+
                 TextSliderPair("Turbine Strength: ", ref fjm, ref Class1.FanJetMultiplier, 0f, 2f, false);
                 TextSliderPair("Turbine Velocity Limiter: ", ref fjr, ref Class1.FanJetVelocityRestraint, 0f, 25f, false, 1f);
                 TextSliderPair("Wing Strength: ", ref mwm, ref Class1.ModuleWingMultiplier, 0f, 2f, false);
