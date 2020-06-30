@@ -647,6 +647,42 @@ namespace Misc_Mods
                     }
                     else
                     {
+                        if (fieldValue is System.Collections.IDictionary iDict)
+                        {
+                            Console.WriteLine(fieldName + " is IDictionary!");
+                            try
+                            {
+                                Type itemType;
+                                if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
+                                else itemType = type.GetElementType();
+                                JArray ARR = new JArray();
+                                foreach (var pair in iDict)
+                                { 
+                                    ARR.Add(DeepDumpComponent(itemType, pair, Depth - 1, path + "/" + fieldName + "[" + "]"));
+                                }
+                                OBJ.Add(fieldName, ARR);
+                                return;
+                            }
+                            catch { }
+                        }
+                        if (fieldValue is System.Collections.IList iList)
+                        {
+                            Console.WriteLine(fieldName + " is IList!");
+                            try
+                            {
+                                Type itemType;
+                                if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
+                                else itemType = type.GetElementType();
+                                JArray ARR = new JArray();
+                                for (int i = 0; i < iList.Count; i++)
+                                {
+                                    ARR.Add(DeepDumpComponent(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
+                                }
+                                OBJ.Add(fieldName, ARR);
+                                return;
+                            }
+                            catch { }
+                        }
                         JValue fieldJValue = JToken.FromObject(fieldValue) as JValue;
                         if (fieldJValue != null)
                         {
@@ -666,21 +702,6 @@ namespace Misc_Mods
                                 OBJ.Add(fieldName, DeepDumpComponent(fieldType, fieldValue, Depth - 1, pathAdd));
                             }
                             return;
-                        }
-                        if (fieldValue is System.Collections.IList iList)
-                        {
-                            try
-                            {
-                                Type itemType;
-                                if (type.IsGenericType) itemType = type.GetGenericArguments()[0];
-                                else itemType = type.GetElementType();
-                                for (int i = 0; i < iList.Count; i++)
-                                {
-                                    OBJ.Add(fieldName, DeepDumpComponent(itemType, iList[i], Depth - 1, path + "/" + fieldName + "[" + i + "]"));
-                                }
-                                return;
-                            }
-                            catch { }
                         }
                     }
                 }
