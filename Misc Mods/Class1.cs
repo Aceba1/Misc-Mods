@@ -369,6 +369,31 @@ namespace Misc_Mods
 
                             skipdump:;
                         }
+                        foreach (var mr in module.GetComponentsInChildren<Projector>(true))
+                        {
+                            var mat = mr.material;
+
+                            foreach (string key in mat.shaderKeywords)
+                                if (key == "_SKINS") // Do not dump
+                                {
+                                    // Skin textures are oddly sized, this is as a filter to catch any potential leaks
+                                    invalid.Add(new Vector2(mat.mainTexture.width, mat.mainTexture.height));
+
+                                    goto skipdump; // 'continue' would not work here
+                                }
+
+                            var tex1 = mat.mainTexture;
+                            if (tex1 != null)
+                                buffer.Add(tex1, mr.name + "_" + tex1.name + "_Projector_1.png");
+                            var tex2 = mat.GetTexture("_MetallicGlossMap");
+                            if (tex2 != null)
+                                buffer.Add(tex2, mr.name + "_" + tex2.name + "_Projector_2.png");
+                            var tex3 = mat.GetTexture("_EmissionMap");
+                            if (tex3 != null)
+                                buffer.Add(tex3, mr.name + "_" + tex3.name + "_Projector_3.png");
+
+                            skipdump:;
+                        }
                         foreach (var tex in buffer)
                         {
                             if (invalid.Contains(new Vector2(tex.Key.width, tex.Key.height))) continue;
