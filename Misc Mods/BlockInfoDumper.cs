@@ -627,12 +627,12 @@ namespace Misc_Mods
                     Transform fTransfrom = fieldValue as Transform;
                     if (CachedTransforms.TryGetValue(fTransfrom, out string fPath))
                     {
-                        Console.WriteLine("Using past transform " + fTransfrom.name + "  " + path);
+                        //Console.WriteLine("Using past transform " + fTransfrom.name + "  " + path);
                         OBJ.Add(fieldName, fPath);
                     }
                     else
                     {
-                        Console.WriteLine("Discovered new transform " + fTransfrom.name + "  " + path);
+                        //Console.WriteLine("Discovered new transform " + fTransfrom.name + "  " + path);
                         OBJ.Add(fieldName, DeepDumpTransform(fTransfrom, Depth, path));
                     }
                 }

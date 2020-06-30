@@ -537,7 +537,7 @@ namespace Misc_Mods
             }
         }
 
-        public static bool TextSliderPair(string label, ref string input, ref float value, float min, float max, bool clampText, float round = 0.05f) // Copied from Block Injector Overhaul branch
+        public static bool TextSliderPair(string label, ref string input, ref float value, float min, float max, bool clampText, float round = 0.05f) // Copied from Control Block Overhaul branch
         {
             GUILayout.Label(label + value.ToString());
 
