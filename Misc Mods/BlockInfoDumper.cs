@@ -647,7 +647,13 @@ namespace Misc_Mods
                     }
                     else
                     {
-                        if (fieldValue is System.Collections.IDictionary iDict)
+                        JToken fieldJValue = JToken.FromObject(fieldValue);
+                        if (fieldJValue != null)
+                        {
+                            OBJ.Add(fieldName, fieldJValue);
+                            return;
+                        }
+                        else if (fieldValue is System.Collections.IDictionary iDict)
                         {
                             Console.WriteLine(fieldName + " is IDictionary!");
                             try
@@ -665,7 +671,7 @@ namespace Misc_Mods
                             }
                             catch { }
                         }
-                        if (fieldValue is System.Collections.IList iList)
+                        else if (fieldValue is System.Collections.IList iList)
                         {
                             Console.WriteLine(fieldName + " is IList!");
                             try
@@ -682,12 +688,6 @@ namespace Misc_Mods
                                 return;
                             }
                             catch { }
-                        }
-                        JValue fieldJValue = JToken.FromObject(fieldValue) as JValue;
-                        if (fieldJValue != null)
-                        {
-                            OBJ.Add(fieldName, fieldJValue);
-                            return;
                         }
                         else if (fieldType.IsClass)
                         {
