@@ -313,6 +313,24 @@ namespace Misc_Mods
                         {
                             System.IO.Directory.CreateDirectory(path);
                         }
+                        var fireData = module.GetComponent<FireData>();
+                        if (fireData != null)
+                        {
+                            if (fireData.m_BulletPrefab != null)
+                            {
+                                foreach (var mf in fireData.m_BulletPrefab.GetComponentsInChildren<MeshFilter>())
+                                {
+                                    System.IO.File.WriteAllText(path + "/projectile/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                                }
+                            }
+                            if (fireData.m_BulletCasingPrefab != null)
+                            {
+                                foreach (var mf in fireData.m_BulletCasingPrefab.GetComponentsInChildren<MeshFilter>())
+                                {
+                                    System.IO.File.WriteAllText(path + "/casing/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                                }
+                            }
+                        }
                         foreach (var mf in module.GetComponentsInChildren<MeshFilter>())
                         {
                             System.IO.File.WriteAllText(path + "/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
