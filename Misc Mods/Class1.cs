@@ -320,7 +320,7 @@ namespace Misc_Mods
                             {
                                 foreach (var mf in fireData.m_BulletPrefab.GetComponentsInChildren<MeshFilter>())
                                 {
-                                    System.IO.File.WriteAllText(path + "/projectile/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
+                                    System.IO.File.WriteAllText(path + "/bullet/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
                                 }
                             }
                             if (fireData.m_BulletCasingPrefab != null)
@@ -362,6 +362,44 @@ namespace Misc_Mods
 
                         Dictionary<Texture, string> buffer = new Dictionary<Texture, string>();
                         List<Vector2> invalid = new List<Vector2>();
+
+                        var fireData = module.GetComponent<FireData>();
+                        if (fireData != null)
+                        {
+                            if (fireData.m_BulletPrefab != null)
+                            {
+                                foreach (var mr in fireData.m_BulletPrefab.GetComponentsInChildren<Renderer>())
+                                {
+                                    var mat = mr.material;
+                                    var tex1 = mat.mainTexture;
+                                    if (tex1 != null)
+                                        buffer.Add(tex1, mr.name + "_" + tex1.name + "_bullet_1.png");
+                                    var tex2 = mat.GetTexture("_MetallicGlossMap");
+                                    if (tex2 != null)
+                                        buffer.Add(tex2, mr.name + "_" + tex2.name + "_bullet_2.png");
+                                    var tex3 = mat.GetTexture("_EmissionMap");
+                                    if (tex3 != null)
+                                        buffer.Add(tex3, mr.name + "_" + tex3.name + "_bullet_3.png");
+                                }
+                            }
+                            if (fireData.m_BulletCasingPrefab != null)
+                            {
+                                foreach (var mr in fireData.m_BulletCasingPrefab.GetComponentsInChildren<Renderer>())
+                                {
+                                    var mat = mr.material;
+                                    var tex1 = mat.mainTexture;
+                                    if (tex1 != null)
+                                        buffer.Add(tex1, mr.name + "_" + tex1.name + "_casing_1.png");
+                                    var tex2 = mat.GetTexture("_MetallicGlossMap");
+                                    if (tex2 != null)
+                                        buffer.Add(tex2, mr.name + "_" + tex2.name + "_casing_2.png");
+                                    var tex3 = mat.GetTexture("_EmissionMap");
+                                    if (tex3 != null)
+                                        buffer.Add(tex3, mr.name + "_" + tex3.name + "_casing_3.png");
+                                }
+                            }
+                        }
+
                         foreach (var mr in module.GetComponentsInChildren<Renderer>(true))
                         {
                             var mat = mr.material;
