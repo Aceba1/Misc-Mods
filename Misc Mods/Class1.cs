@@ -515,19 +515,47 @@ namespace Misc_Mods
                             System.IO.File.WriteAllText(path + "/" + safeName + "_prefab.json", Total);
                             log = "Exported " + safeName + "prefab_.json to " + path;
                         }
-                        if (GUILayout.Button("Export FireData Projectile JSON"))
+
+                        var fireData = module.GetComponent<FireData>();
+                        if (fireData != null && GUILayout.Button("Export FireData Projectile JSON"))
                         {
                             string path = "_Export/BlockJson";
-                            BlockInfoDumper.DeepDumpClassCache.Clear();
-                            BlockInfoDumper.CachedTransforms.Clear();
-                            var Total = BlockInfoDumper.DeepDumpAll(module.GetComponent<FireData>().m_BulletPrefab.transform, 12).ToString();
-                            if (!System.IO.Directory.Exists(path))
+                            bool nothing = true;
+                            log = "Exported ";
+                            if (fireData.m_BulletPrefab != null)
                             {
-                                System.IO.Directory.CreateDirectory(path);
+                                nothing = false;
+                                BlockInfoDumper.DeepDumpClassCache.Clear();
+                                BlockInfoDumper.CachedTransforms.Clear();
+                                var Total = BlockInfoDumper.DeepDumpAll(fireData.m_BulletPrefab.transform, 12).ToString();
+                                if (!System.IO.Directory.Exists(path))
+                                {
+                                    System.IO.Directory.CreateDirectory(path);
+                                }
+                                string safeName = SafeName(module.name);
+                                System.IO.File.WriteAllText(path + "/" + safeName + "_BulletPrefab.json", Total);
+                                log += safeName + "_BulletPrefab.json";
                             }
-                            string safeName = SafeName(module.name);
-                            System.IO.File.WriteAllText(path + "/" + safeName + "_BulletPrefab.json", Total);
-                            log = "Exported " + safeName + "_BulletPrefab.json to " + path;
+                            if (fireData.m_BulletCasingPrefab != null)
+                            {
+                                if (!nothing)
+                                    log += "\nand ";
+                                nothing = false;
+                                BlockInfoDumper.DeepDumpClassCache.Clear();
+                                BlockInfoDumper.CachedTransforms.Clear();
+                                var Total = BlockInfoDumper.DeepDumpAll(fireData.m_BulletCasingPrefab.transform, 12).ToString();
+                                if (!System.IO.Directory.Exists(path))
+                                {
+                                    System.IO.Directory.CreateDirectory(path);
+                                }
+                                string safeName = SafeName(module.name);
+                                System.IO.File.WriteAllText(path + "/" + safeName + "_CasingPrefab.json", Total);
+                                log += safeName + "_CasingPrefab.json";
+                            }
+                            if (nothing)
+                                log += "nothing";
+
+                            log += " to " + path;
                         }
                     }
                 }
