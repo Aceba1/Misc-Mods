@@ -310,9 +310,8 @@ namespace Misc_Mods
                     {
                         string path = "_Export/ModelParts/" + SafeName(module.name);
                         if (!System.IO.Directory.Exists(path))
-                        {
                             System.IO.Directory.CreateDirectory(path);
-                        }
+
                         var fireData = module.GetComponent<FireData>();
                         if (fireData != null)
                         {
@@ -320,6 +319,8 @@ namespace Misc_Mods
                             {
                                 foreach (var mf in fireData.m_BulletPrefab.GetComponentsInChildren<MeshFilter>())
                                 {
+                                    if (!System.IO.Directory.Exists(path + "/bullet"))
+                                        System.IO.Directory.CreateDirectory(path + "/bullet");
                                     System.IO.File.WriteAllText(path + "/bullet/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
                                 }
                             }
@@ -327,6 +328,8 @@ namespace Misc_Mods
                             {
                                 foreach (var mf in fireData.m_BulletCasingPrefab.GetComponentsInChildren<MeshFilter>())
                                 {
+                                    if (!System.IO.Directory.Exists(path + "/casing"))
+                                        System.IO.Directory.CreateDirectory(path + "/casing");
                                     System.IO.File.WriteAllText(path + "/casing/" + SafeName(mf.mesh.name) + ".obj", LocalObjExporter.MeshToString(mf.mesh, mf.mesh.name, Vector3.one, Vector3.zero, Quaternion.identity));
                                 }
                             }
@@ -342,9 +345,7 @@ namespace Misc_Mods
                     {
                         string path = "_Export/Textures/" + SafeName(module.name);
                         if (!System.IO.Directory.Exists(path))
-                        {
                             System.IO.Directory.CreateDirectory(path);
-                        }
 
                         Texture2D original = ManUI.inst.GetSprite(module.m_ItemType).texture;
                         Texture2D copy = duplicateTexture(original);
