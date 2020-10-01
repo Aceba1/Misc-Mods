@@ -364,14 +364,17 @@ namespace Misc_Mods
                         Dictionary<Texture, string> buffer = new Dictionary<Texture, string>();
                         List<Vector2> invalid = new List<Vector2>();
 
+                        Console.WriteLine("Dumping textures of " + module.name + "...");
                         var fireData = module.GetComponent<FireData>();
                         if (fireData != null)
                         {
                             if (fireData.m_BulletPrefab != null)
                             {
+                                Console.WriteLine("FireData - Bullet " + fireData.m_BulletPrefab.name + "...");
                                 foreach (var mr in fireData.m_BulletPrefab.GetComponentsInChildren<Renderer>())
                                 {
                                     var mat = mr.material;
+                                    Console.WriteLine($"- {mr.sharedMaterial.name} - [ {mat.shader.name} ] - {mat.name}");
                                     var tex1 = mat.mainTexture;
                                     if (tex1 != null)
                                         buffer.Add(tex1, mr.name + "_" + tex1.name + "_bullet_1.png");
@@ -385,9 +388,11 @@ namespace Misc_Mods
                             }
                             if (fireData.m_BulletCasingPrefab != null)
                             {
+                                Console.WriteLine("FireData - Casing " + fireData.m_BulletCasingPrefab.name + "...");
                                 foreach (var mr in fireData.m_BulletCasingPrefab.GetComponentsInChildren<Renderer>())
                                 {
                                     var mat = mr.material;
+                                    Console.WriteLine($"- {mr.sharedMaterial.name} - [ {mat.shader.name} ] - {mat.name}");
                                     var tex1 = mat.mainTexture;
                                     if (tex1 != null)
                                         buffer.Add(tex1, mr.name + "_" + tex1.name + "_casing_1.png");
@@ -401,9 +406,11 @@ namespace Misc_Mods
                             }
                         }
 
+                        Console.WriteLine("Renderers...");
                         foreach (var mr in module.GetComponentsInChildren<Renderer>(true))
                         {
                             var mat = mr.material;
+                            Console.WriteLine($"- {mr.sharedMaterial.name} - [ {mat.shader.name} ] - {mat.name}");
 
                             foreach (string key in mat.shaderKeywords)
                                 if (key == "_SKINS") // Do not dump
@@ -426,18 +433,23 @@ namespace Misc_Mods
 
                             skipdump:;
                         }
+
+                        Console.WriteLine("Projectors...");
                         foreach (var mr in module.GetComponentsInChildren<Projector>(true))
                         {
                             var mat = mr.material;
+                            Console.WriteLine($"- [ {mat.shader.name} ] - {mat.name}");
 
-                            foreach (string key in mat.shaderKeywords)
-                                if (key == "_SKINS") // Do not dump
-                                {
-                                    // Skin textures are oddly sized, this is as a filter to catch any potential leaks
-                                    invalid.Add(new Vector2(mat.mainTexture.width, mat.mainTexture.height));
+                            // Doubt there'd be any skin-locked projections going on here
 
-                                    goto skipdump; // 'continue' would not work here
-                                }
+                            //foreach (string key in mat.shaderKeywords)
+                            //    if (key == "_SKINS") // Do not dump
+                            //    {
+                            //        // Skin textures are oddly sized, this is as a filter to catch any potential leaks
+                            //        invalid.Add(new Vector2(mat.mainTexture.width, mat.mainTexture.height));
+
+                            //        goto skipdump; // 'continue' would not work here
+                            //    }
 
                             var tex1 = mat.mainTexture;
                             if (tex1 != null)
@@ -449,15 +461,17 @@ namespace Misc_Mods
                             if (tex3 != null)
                                 buffer.Add(tex3, mr.name + "_" + tex3.name + "_Projector_3.png");
 
-                            skipdump:;
+                            //skipdump:;
                         }
+                        int count = 0;
                         foreach (var tex in buffer)
                         {
                             if (invalid.Contains(new Vector2(tex.Key.width, tex.Key.height))) continue;
                             System.IO.File.WriteAllBytes(path + "/" + SafeName(tex.Value), duplicateTexture(tex.Key).EncodeToPNG());
+                            count++;
                         }
 
-                        log = "Exported all .png files to " + path;
+                        log = $"Exported {count} .png file{(count!=1?"s":"")} to " + path;
                     }
                 }
             }
