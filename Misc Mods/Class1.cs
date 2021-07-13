@@ -1,7 +1,7 @@
 ﻿using ModHelper.Config;
 using System;
 using UnityEngine;
-using Harmony;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Reflection;
@@ -36,7 +36,7 @@ namespace Misc_Mods
             config.BindConfig<Class1>(null, "TechDrag");
             config.UpdateConfig += GUIConfig.ResetMultipliers;
 
-            HarmonyInstance mod = HarmonyInstance.Create("aceba1.ttmm.misc");
+            Harmony mod = new Harmony("aceba1.ttmm.misc");
             mod.PatchAll(Assembly.GetExecutingAssembly());
             new GameObject().AddComponent<GUIConfig>();
             GUIConfig.ResetMultipliers();
